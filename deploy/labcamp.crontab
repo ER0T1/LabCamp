@@ -1,0 +1,1 @@
+17 3 * * * /home/m11305502/LabCamp/deploy/renew-certificate.sh >> /home/m11305502/LabCamp/storage/certbot-renew.log 2>&1

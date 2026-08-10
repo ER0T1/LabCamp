@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  MEMBER
+}
+
+enum Season {
+  WINTER
+  SUMMER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  avatarUrl    String?
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Training {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  year        Int
+  season      Season
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  published   Boolean  @default(false)
+  courses     Course[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([year, season])
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  trainingId  String
+  training    Training     @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String
+  content     String       @db.Text
+  instructor  String
+  order       Int          @default(0)
+  published   Boolean      @default(false)
+  parentId    String?
+  parent      Course?      @relation("CourseTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Course[]     @relation("CourseTree")
+  tags        CourseTag[]
+  attachments Attachment[]
+  links       Link[]
+  assignments Assignment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  @@unique([trainingId, slug])
+  @@index([parentId])
+}
+
+model Tag {
+  id      String      @id @default(cuid())
+  name    String      @unique
+  slug    String      @unique
+  courses CourseTag[]
+}
+
+model CourseTag {
+  courseId String
+  tagId    String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([courseId, tagId])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  name      String
+  url       String
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model Assignment {
+  id          String       @id @default(cuid())
+  courseId    String
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  dueDate     DateTime?
+  submissions Submission[]
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  content      String?    @db.Text
+  fileUrl      String?
+  submittedAt  DateTime   @default(now())
+}

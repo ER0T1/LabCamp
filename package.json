@@ -1,0 +1,42 @@
+{
+  "name": "labcamp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "db:seed": "node prisma/seed.mjs"
+  },
+  "dependencies": {
+    "@ckeditor/ckeditor5-react": "^11.2.0",
+    "@node-rs/argon2": "^2.0.2",
+    "@prisma/client": "^6.13.0",
+    "@types/sanitize-html": "^2.16.1",
+    "ckeditor5": "^48.4.0",
+    "file-type": "^22.0.1",
+    "lucide-react": "^0.468.0",
+    "marked": "^18.0.9",
+    "next": "^16.3.0",
+    "next-auth": "^5.0.0-beta.32",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "sanitize-html": "^2.17.6",
+    "zod": "^4.4.3"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prisma": "^6.13.0",
+    "typescript": "^5.7.0"
+  }
+}
