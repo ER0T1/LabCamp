@@ -2,20 +2,21 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.0.0-2563eb)
+![Version](https://img.shields.io/badge/version-v1.0.1-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、會員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.0.0 功能
+## v1.0.1 功能
 
 ### 公開內容
 
 - 首頁展示當期訓練與最近更新
 - 依年份與季節瀏覽歷屆寒暑訓
 - 階層式課程目錄與前後篇導覽
+- 課程頁章節導覽支援閱讀位置追蹤、階層縮排與獨立捲動
 - 課程、講師與標籤搜尋
 - 響應式介面與 PWA 安裝支援
 
