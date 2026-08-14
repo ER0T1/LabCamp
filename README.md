@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)
+![Version](https://img.shields.io/badge/version-v1.1.1-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
-LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、會員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
+LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.1.0 功能
+## v1.1.1 功能
 
 ### 公開內容
 
@@ -26,13 +26,13 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - Argon2 密碼雜湊、JWT Session 與角色授權
 - 個人頭像、電子信箱與密碼設定
 - `ADMIN`、`EDITOR`、`MEMBER` 三種角色
-- 管理員可調整會員角色或刪除會員
+- 管理員可調整成員角色或刪除成員
 - 管理員可查詢登入成功、失敗與登出日誌，並依事件、日期、Email 或 IP 篩選
 - 管理員可查看資訊、警告與錯誤三級系統日誌，追蹤內容及權限操作
 
 ### 內容管理
 
-- 新增、編輯、發布及刪除訓練與課程
+- 新增、編輯、預覽、發布及刪除訓練與課程
 - 課程支援父子階層、自動產生唯一 slug 與標籤
 - CKEditor 5 富文字編輯器
 - 圖片內嵌與多檔附件上傳
@@ -122,9 +122,9 @@ npm run dev
 | `/training/[slug]/courses/[courseSlug]` | 課程內容 | 公開 |
 | `/search?q=` | 課程搜尋 | 公開 |
 | `/register`、`/login` | 註冊與登入 | 公開 |
-| `/account`、`/account/settings` | 帳號與個人設定 | 會員 |
+| `/account`、`/account/settings` | 帳號與個人設定 | MEMBER |
 | `/admin` | 內容管理 | ADMIN／EDITOR |
-| `/admin/members` | 會員與角色管理 | ADMIN |
+| `/admin/members` | 成員與角色管理 | ADMIN |
 | `/admin/login-logs` | 登入日誌與異常登入提示 | ADMIN |
 | `/admin/audit-logs` | 系統操作與錯誤日誌 | ADMIN |
 

@@ -261,7 +261,7 @@ export async function updateCourse(formData: FormData) {
   revalidatePath("/training");
   revalidatePath(`/training/${course.training.slug}/courses/${existing.slug}`);
   revalidatePath(`/training/${course.training.slug}/courses/${course.slug}`);
-  redirect(`/admin/courses/${id}/edit?saved=1`);
+  redirect("/admin");
 }
 
 export async function deleteTraining(id: string) {

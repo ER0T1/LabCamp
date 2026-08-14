@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { AuditLevel, Prisma } from "@prisma/client";
+import { CircleX, Info, ListChecks, TriangleAlert } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AdminTabs } from "@/components/admin-tabs";
 import { DateFilterInput } from "@/components/date-filter-input";
+import { StyledSelect } from "@/components/styled-select";
 import { prisma } from "@/lib/prisma";
 
 const PAGE_SIZE = 25;
@@ -69,18 +71,18 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
     <div className="admin-subpage-head"><div><p className="eyebrow">CONTROL DESK</p><h1>管理後台</h1><p>追蹤內容、權限與系統操作事件。</p></div></div>
     <AdminTabs canManageMembers/>
 
-    <div className="login-log-stats" aria-label="系統日誌摘要">
-      <span><b>{levelCounts.reduce((sum, item) => sum + item._count._all, 0)}</b><small>全部日誌</small></span>
-      <span><b>{countByLevel.get("INFO") ?? 0}</b><small>資訊</small></span>
-      <span><b>{countByLevel.get("WARNING") ?? 0}</b><small>警告</small></span>
-      <span><b>{countByLevel.get("ERROR") ?? 0}</b><small>錯誤</small></span>
+    <div className="stats" aria-label="系統日誌摘要">
+      <div><ListChecks/><span>全部日誌</span><b>{levelCounts.reduce((sum, item) => sum + item._count._all, 0)}</b><small>系統操作紀錄</small></div>
+      <div><Info/><span>資訊</span><b>{countByLevel.get("INFO") ?? 0}</b><small>一般系統事件</small></div>
+      <div><TriangleAlert/><span>警告</span><b>{countByLevel.get("WARNING") ?? 0}</b><small>需要留意</small></div>
+      <div><CircleX/><span>錯誤</span><b>{countByLevel.get("ERROR") ?? 0}</b><small>執行異常</small></div>
     </div>
 
     <section className="admin-table audit-log-management">
       <header><div><p className="eyebrow">SYSTEM AUDIT TRAIL</p><h2>系統日誌</h2></div><small>僅管理員可查看，共 {total} 筆符合條件的紀錄</small></header>
       <form className="login-log-filters" action="/admin/audit-logs" method="get">
         <label>搜尋<input name="query" defaultValue={query} placeholder="操作、訊息、姓名或 Email"/></label>
-        <label>等級<select name="level" defaultValue={level ?? ""}><option value="">全部等級</option><option value="INFO">資訊</option><option value="WARNING">警告</option><option value="ERROR">錯誤</option></select></label>
+        <label>等級<StyledSelect name="level" defaultValue={level ?? ""} ariaLabel="等級" options={[{ value: "", label: "全部等級" }, { value: "INFO", label: "資訊" }, { value: "WARNING", label: "警告" }, { value: "ERROR", label: "錯誤" }]}/></label>
         <label>開始日期<DateFilterInput name="from" defaultValue={params.from} ariaLabel="系統日誌開始日期"/></label>
         <label>結束日期<DateFilterInput name="to" defaultValue={params.to} ariaLabel="系統日誌結束日期"/></label>
         <div><button type="submit">套用篩選</button><Link href="/admin/audit-logs">清除</Link></div>

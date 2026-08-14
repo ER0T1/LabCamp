@@ -15,6 +15,7 @@ import {
 } from "ckeditor5";
 import type { FileLoader, UploadAdapter, UploadResponse } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
+import zhTranslations from "ckeditor5/translations/zh.js";
 
 const plugins = [
   Essentials, Paragraph, Heading, Autoformat, TextTransformation, Bold, Italic, Underline, Strikethrough,
@@ -62,11 +63,10 @@ export function RichTextEditor({ name, initialData = "", courseId }: { name: str
   if (!ready) return <div className="editor-loading">正在載入文字編輯器…</div>;
   return <div className="rich-editor"><input type="hidden" name={name} value={data}/><CKEditor editor={ClassicEditor} data={initialData} config={{
     licenseKey: "GPL", plugins, extraPlugins: [UploadPlugin],
-    toolbar: { shouldNotGroupWhenFull: false, items: [
-      "undo", "redo", "|", "findAndReplace", "selectAll", "|", "heading", "style", "|",
-      "fontFamily", "fontSize", "fontColor", "fontBackgroundColor", "highlight", "|",
-      "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "code", "removeFormat", "|",
-      "alignment", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
+    language: { ui: "zh", content: "zh" }, translations: [zhTranslations],
+    toolbar: { shouldNotGroupWhenFull: true, items: [
+      "undo", "redo", "|", "findAndReplace", "selectAll", "|", "heading", "style", "|", "fontFamily", "fontSize", "fontColor", "fontBackgroundColor", "highlight", "|",
+      "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "code", "removeFormat", "|", "alignment", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|",
       "link", "bookmark", "insertImage", "insertTable", "mediaEmbed", "blockQuote", "codeBlock", "htmlEmbed", "|",
       "specialCharacters", "emoji", "horizontalLine", "pageBreak", "showBlocks", "sourceEditing", "fullscreen",
     ] },
@@ -90,5 +90,5 @@ export function RichTextEditor({ name, initialData = "", courseId }: { name: str
     // can otherwise run arbitrary scripts in the editor page.
     htmlEmbed: { showPreviews: false },
     wordCount: { onUpdate: stats => setCount({ words: stats.words, characters: stats.characters }) },
-  }} onChange={(_, editor) => setData(editor.getData())}/><div className="editor-count mono">{count.words} WORDS　/　{count.characters} CHARACTERS</div></div>;
+  }} onReady={(editor) => editor.ui.view.toolbar.switchBehavior("static")} onChange={(_, editor) => setData(editor.getData())}/><div className="editor-count mono">{count.words} WORDS　/　{count.characters} CHARACTERS</div></div>;
 }
