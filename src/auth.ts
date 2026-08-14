@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { verify } from "@node-rs/argon2";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { recordLoginEvent } from "@/lib/login-log";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -15,11 +16,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: "/login" },
   providers: [Credentials({
     credentials: { email: {}, password: {} },
-    async authorize(credentials) {
+    async authorize(credentials, request) {
+      const submittedEmail = typeof credentials?.email === "string" ? credentials.email : null;
       const parsed = credentialsSchema.safeParse(credentials);
-      if (!parsed.success) return null;
+      if (!parsed.success) {
+        await recordLoginEvent({ email: submittedEmail, event: "LOGIN_FAILED", headers: request.headers, failureReason: "INVALID_INPUT" });
+        return null;
+      }
       const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
-      if (!user || !(await verify(user.passwordHash, parsed.data.password))) return null;
+      if (!user) {
+        await recordLoginEvent({ email: parsed.data.email, event: "LOGIN_FAILED", headers: request.headers, failureReason: "USER_NOT_FOUND" });
+        return null;
+      }
+      if (!(await verify(user.passwordHash, parsed.data.password))) {
+        await recordLoginEvent({ userId: user.id, email: user.email, event: "LOGIN_FAILED", headers: request.headers, failureReason: "INVALID_PASSWORD" });
+        return null;
+      }
+      await recordLoginEvent({ userId: user.id, email: user.email, event: "LOGIN_SUCCESS", headers: request.headers });
       return { id: user.id, name: user.name, email: user.email, role: user.role };
     },
   })],

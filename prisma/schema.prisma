@@ -18,15 +18,68 @@ enum Season {
   SUMMER
 }
 
+enum LoginEvent {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+}
+
+enum AuditLevel {
+  INFO
+  WARNING
+  ERROR
+}
+
 model User {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
   avatarUrl    String?
-  role         Role     @default(MEMBER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role       @default(MEMBER)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  loginLogs    LoginLog[]
+  auditLogs    AuditLog[]
+}
+
+model LoginLog {
+  id            String     @id @default(cuid())
+  userId        String?
+  user          User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email         String?
+  event         LoginEvent
+  ipAddress     String?
+  userAgent     String?
+  failureReason String?
+  createdAt     DateTime   @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([event])
+  @@index([createdAt])
+  @@index([ipAddress, event, createdAt])
+}
+
+model AuditLog {
+  id           String     @id @default(cuid())
+  level        AuditLevel @default(INFO)
+  action       String
+  message      String
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorName    String?
+  actorEmail   String?
+  resourceType String?
+  resourceId   String?
+  metadata     Json?
+  createdAt    DateTime   @default(now())
+
+  @@index([level])
+  @@index([action])
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
 }
 
 model Training {
@@ -42,6 +95,7 @@ model Training {
   courses     Course[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
   @@index([year, season])
 }
 
@@ -65,6 +119,7 @@ model Course {
   assignments Assignment[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
   @@unique([trainingId, slug])
   @@index([parentId])
 }
@@ -81,6 +136,7 @@ model CourseTag {
   tagId    String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@id([courseId, tagId])
 }
 

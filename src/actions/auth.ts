@@ -4,9 +4,11 @@ import { AuthError } from "next-auth";
 import { hash, verify } from "@node-rs/argon2";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { recordLoginEvent } from "@/lib/login-log";
 
 export type LoginState = { error?: string };
 export type RegisterState = { error?: string };
@@ -50,7 +52,18 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
   }
 }
 
-export async function logout() { await signOut({ redirectTo: "/" }); }
+export async function logout() {
+  const [session, requestHeaders] = await Promise.all([auth(), headers()]);
+  if (session?.user) {
+    await recordLoginEvent({
+      userId: session.user.id,
+      email: session.user.email,
+      event: "LOGOUT",
+      headers: requestHeaders,
+    });
+  }
+  await signOut({ redirectTo: "/" });
+}
 
 export async function register(_state: RegisterState, formData: FormData): Promise<RegisterState> {
   const parsed = registerSchema.safeParse({
