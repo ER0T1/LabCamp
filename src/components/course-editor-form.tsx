@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ClientRichTextEditor } from "@/components/client-rich-text-editor";
 import { NewCourseAttachments } from "@/components/new-course-attachments";
 import { TagInput } from "@/components/tag-input";
+import { CoursePreview } from "@/components/course-preview";
+import { StyledSelect } from "@/components/styled-select";
 
 type Values = {
   id?: string;
@@ -43,7 +45,7 @@ export function CourseEditorForm({
           <p className="eyebrow">COURSE EDITOR</p>
           <h1>{values.id ? "編輯課程" : "新增課程"}</h1>
         </div>
-        <div>
+        <div className="editor-actions">
           {saved && <span className="saved-badge">已儲存</span>}
           <label className="publish-check">
             <input
@@ -53,41 +55,36 @@ export function CourseEditorForm({
             />{" "}
             發布
           </label>
-          <button>儲存課程 →</button>
+          <CoursePreview mode={values.id ? "edit" : "new"} />
+          <button type="submit" className="course-save-button">儲存課程 →</button>
         </div>
       </div>
       <div className="editor-fields-panel">
         <div className="editor-fields">
           <label>
           所屬訓練
-          <select
+          <StyledSelect
             name="trainingId"
             defaultValue={values.trainingId}
             disabled={Boolean(values.id)}
             required
-          >
-            {trainings.map((item) => (
-              <option value={item.id} key={item.id}>
-                {item.title}
-              </option>
-            ))}
-          </select>
+            ariaLabel="所屬訓練"
+            options={trainings.map((item) => ({ value: item.id, label: item.title }))}
+          />
           {values.id && (
             <input type="hidden" name="trainingId" value={values.trainingId} />
           )}
           </label>
           <label>
           父課程
-          <select name="parentId" defaultValue={values.parentId ?? ""}>
-            <option value="">無（根課程）</option>
-            {availableParents
+          <StyledSelect
+            name="parentId"
+            defaultValue={values.parentId ?? ""}
+            ariaLabel="父課程"
+            options={[{ value: "", label: "無（根課程）" }, ...availableParents
               .filter((item) => item.trainingId === values.trainingId && item.id !== values.id)
-              .map((item) => (
-                <option value={item.id} key={item.id}>
-                  {item.title}
-                </option>
-              ))}
-          </select>
+              .map((item) => ({ value: item.id, label: item.title }))]}
+          />
           <small>設為某課程的子課程</small>
           </label>
           <label>
