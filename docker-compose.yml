@@ -23,9 +23,22 @@ services:
       AUTH_URL: https://labcamp.duckdns.org
       NEXTAUTH_URL: https://labcamp.duckdns.org
       UPLOAD_DIR: /app/storage/uploads
+      LOGIN_LOG_PRIVATE_IP_FALLBACK: ${LOGIN_LOG_PRIVATE_IP_FALLBACK:?Set LOGIN_LOG_PRIVATE_IP_FALLBACK in .env}
       NODE_ENV: production
     volumes:
       - uploads:/app/storage/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  migrate:
+    build:
+      context: .
+      target: development
+    profiles: ["tools"]
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://labcamp:${POSTGRES_PASSWORD}@postgres:5432/labcamp
     depends_on:
       postgres:
         condition: service_healthy

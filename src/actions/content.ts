@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { unlink } from "node:fs/promises";
 import { auth } from "@/auth";
+import { recordAuditError, recordAuditLog } from "@/lib/audit-log";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile, storedFileName, uploadPath } from "@/lib/uploads";
 
@@ -99,12 +100,18 @@ async function uniqueTrainingSlug(title: string, excludeId?: string) {
 }
 
 export async function createTraining(formData: FormData) {
-  await requireEditor();
-  const input = trainingSchema.parse(Object.fromEntries(formData));
-  const slug = await uniqueTrainingSlug(input.title);
-  await prisma.training.create({
-    data: { ...input, slug, published: formData.get("published") === "on" },
-  });
+  const user = await requireEditor();
+  try {
+    const input = trainingSchema.parse(Object.fromEntries(formData));
+    const slug = await uniqueTrainingSlug(input.title);
+    const training = await prisma.training.create({
+      data: { ...input, slug, published: formData.get("published") === "on" },
+    });
+    await recordAuditLog({ action: "CREATE_TRAINING", message: `建立訓練「${training.title}」`, actor: user, resourceType: "Training", resourceId: training.id });
+  } catch (error) {
+    await recordAuditError({ action: "CREATE_TRAINING", message: "建立訓練", actor: user, resourceType: "Training" }, error);
+    throw error;
+  }
   revalidatePath("/");
   revalidatePath("/training");
   revalidatePath("/admin");
@@ -112,18 +119,23 @@ export async function createTraining(formData: FormData) {
 }
 
 export async function updateTraining(formData: FormData) {
-  await requireEditor();
+  const user = await requireEditor();
   const input = updateTrainingSchema.parse(Object.fromEntries(formData));
   const { id, ...data } = input;
-  const existing = await prisma.training.findUniqueOrThrow({
-    where: { id },
-    select: { slug: true },
-  });
-  const slug = await uniqueTrainingSlug(data.title, id);
-  const training = await prisma.training.update({
-    where: { id },
-    data: { ...data, slug, published: formData.get("published") === "on" },
-  });
+  let existing: { slug: string };
+  let training: { id: string; title: string; slug: string };
+  try {
+    existing = await prisma.training.findUniqueOrThrow({ where: { id }, select: { slug: true } });
+    const slug = await uniqueTrainingSlug(data.title, id);
+    training = await prisma.training.update({
+      where: { id },
+      data: { ...data, slug, published: formData.get("published") === "on" },
+    });
+    await recordAuditLog({ action: "UPDATE_TRAINING", message: `更新訓練「${training.title}」`, actor: user, resourceType: "Training", resourceId: training.id });
+  } catch (error) {
+    await recordAuditError({ action: "UPDATE_TRAINING", message: "更新訓練", actor: user, resourceType: "Training", resourceId: id }, error);
+    throw error;
+  }
   revalidatePath("/");
   revalidatePath("/training");
   revalidatePath("/admin");
@@ -133,30 +145,26 @@ export async function updateTraining(formData: FormData) {
 }
 
 export async function createCourse(formData: FormData) {
-  await requireEditor();
-  const input = courseSchema.parse(Object.fromEntries(formData));
-  if (input.parentId) {
-    const parent = await prisma.course.findUnique({
-      where: { id: input.parentId },
-      select: { trainingId: true },
-    });
-    if (!parent || parent.trainingId !== input.trainingId)
-      throw new Error("INVALID_PARENT");
-  }
-  const slug = await uniqueCourseSlug(input.title, input.trainingId);
-  const course = await prisma.course.create({
-    data: { ...input, slug, published: formData.get("published") === "on" },
-  });
-  await syncTags(course.id, String(formData.get("tags") ?? ""));
-  await syncEmbeddedUploads(course.id, input.content);
-  const files = formData
-    .getAll("attachments")
-    .filter((value): value is File => value instanceof File && value.size > 0);
-  for (const file of files) {
-    const uploaded = await saveUploadedFile(file);
-    await prisma.attachment.create({
-      data: { courseId: course.id, ...uploaded },
-    });
+  const user = await requireEditor();
+  try {
+    const input = courseSchema.parse(Object.fromEntries(formData));
+    if (input.parentId) {
+      const parent = await prisma.course.findUnique({ where: { id: input.parentId }, select: { trainingId: true } });
+      if (!parent || parent.trainingId !== input.trainingId) throw new Error("INVALID_PARENT");
+    }
+    const slug = await uniqueCourseSlug(input.title, input.trainingId);
+    const course = await prisma.course.create({ data: { ...input, slug, published: formData.get("published") === "on" } });
+    await syncTags(course.id, String(formData.get("tags") ?? ""));
+    await syncEmbeddedUploads(course.id, input.content);
+    const files = formData.getAll("attachments").filter((value): value is File => value instanceof File && value.size > 0);
+    for (const file of files) {
+      const uploaded = await saveUploadedFile(file);
+      await prisma.attachment.create({ data: { courseId: course.id, ...uploaded } });
+    }
+    await recordAuditLog({ action: "CREATE_COURSE", message: `建立課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: course.id, metadata: { attachmentCount: files.length } });
+  } catch (error) {
+    await recordAuditError({ action: "CREATE_COURSE", message: "建立課程", actor: user, resourceType: "Course" }, error);
+    throw error;
   }
   revalidatePath(`/training`);
   revalidatePath("/admin");
@@ -215,39 +223,40 @@ async function removeStoredFiles(urls: string[]) {
 }
 
 export async function updateCourse(formData: FormData) {
-  await requireEditor();
+  const user = await requireEditor();
   const input = updateCourseSchema.parse(Object.fromEntries(formData));
   const { id, tags, ...data } = input;
-  const existing = await prisma.course.findUniqueOrThrow({
-    where: { id },
-    include: { training: true },
-  });
-  if (data.parentId === id) throw new Error("INVALID_PARENT");
-  if (data.parentId) {
-    const parent = await prisma.course.findUnique({
-      where: { id: data.parentId },
-      select: { trainingId: true, parentId: true },
-    });
-    if (!parent || parent.trainingId !== existing.trainingId)
-      throw new Error("INVALID_PARENT");
-    let cursor = parent.parentId;
-    while (cursor) {
-      if (cursor === id) throw new Error("COURSE_TREE_CYCLE");
-      const ancestor = await prisma.course.findUnique({
-        where: { id: cursor },
-        select: { parentId: true },
+  let existing: { slug: string; trainingId: string; training: { slug: string } };
+  let course: { id: string; title: string; slug: string; training: { slug: string } };
+  try {
+    existing = await prisma.course.findUniqueOrThrow({ where: { id }, include: { training: true } });
+    if (data.parentId === id) throw new Error("INVALID_PARENT");
+    if (data.parentId) {
+      const parent = await prisma.course.findUnique({
+        where: { id: data.parentId },
+        select: { trainingId: true, parentId: true },
       });
-      cursor = ancestor?.parentId ?? null;
+      if (!parent || parent.trainingId !== existing.trainingId) throw new Error("INVALID_PARENT");
+      let cursor = parent.parentId;
+      while (cursor) {
+        if (cursor === id) throw new Error("COURSE_TREE_CYCLE");
+        const ancestor = await prisma.course.findUnique({ where: { id: cursor }, select: { parentId: true } });
+        cursor = ancestor?.parentId ?? null;
+      }
     }
+    const slug = await uniqueCourseSlug(data.title, existing.trainingId, id);
+    course = await prisma.course.update({
+      where: { id },
+      data: { ...data, slug, published: formData.get("published") === "on" },
+      include: { training: true },
+    });
+    await syncTags(id, tags ?? "");
+    await syncEmbeddedUploads(id, data.content);
+    await recordAuditLog({ action: "UPDATE_COURSE", message: `更新課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: course.id });
+  } catch (error) {
+    await recordAuditError({ action: "UPDATE_COURSE", message: "更新課程", actor: user, resourceType: "Course", resourceId: id }, error);
+    throw error;
   }
-  const slug = await uniqueCourseSlug(data.title, existing.trainingId, id);
-  const course = await prisma.course.update({
-    where: { id },
-    data: { ...data, slug, published: formData.get("published") === "on" },
-    include: { training: true },
-  });
-  await syncTags(id, tags ?? "");
-  await syncEmbeddedUploads(id, data.content);
   revalidatePath("/admin");
   revalidatePath("/training");
   revalidatePath(`/training/${course.training.slug}/courses/${existing.slug}`);
@@ -258,12 +267,18 @@ export async function updateCourse(formData: FormData) {
 export async function deleteTraining(id: string) {
   const user = await requireEditor();
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
-  const attachments = await prisma.attachment.findMany({
-    where: { course: { trainingId: id } },
-    select: { url: true },
-  });
-  await prisma.training.delete({ where: { id } });
-  await removeStoredFiles(attachments.map((item) => item.url));
+  try {
+    const [training, attachments] = await Promise.all([
+      prisma.training.findUniqueOrThrow({ where: { id }, select: { title: true } }),
+      prisma.attachment.findMany({ where: { course: { trainingId: id } }, select: { url: true } }),
+    ]);
+    await prisma.training.delete({ where: { id } });
+    await removeStoredFiles(attachments.map((item) => item.url));
+    await recordAuditLog({ level: "WARNING", action: "DELETE_TRAINING", message: `刪除訓練「${training.title}」`, actor: user, resourceType: "Training", resourceId: id, metadata: { deletedAttachmentCount: attachments.length } });
+  } catch (error) {
+    await recordAuditError({ action: "DELETE_TRAINING", message: "刪除訓練", actor: user, resourceType: "Training", resourceId: id }, error);
+    throw error;
+  }
   revalidatePath("/");
   revalidatePath("/training");
   revalidatePath("/admin");
@@ -272,11 +287,15 @@ export async function deleteTraining(id: string) {
 export async function deleteCourse(id: string) {
   const user = await requireEditor();
   if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
-  const course = await prisma.course.delete({
-    where: { id },
-    include: { training: true, attachments: true },
-  });
-  await removeStoredFiles(course.attachments.map((item) => item.url));
+  let course: { title: string; slug: string; training: { slug: string }; attachments: { url: string }[] };
+  try {
+    course = await prisma.course.delete({ where: { id }, include: { training: true, attachments: true } });
+    await removeStoredFiles(course.attachments.map((item) => item.url));
+    await recordAuditLog({ level: "WARNING", action: "DELETE_COURSE", message: `刪除課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: id, metadata: { deletedAttachmentCount: course.attachments.length } });
+  } catch (error) {
+    await recordAuditError({ action: "DELETE_COURSE", message: "刪除課程", actor: user, resourceType: "Course", resourceId: id }, error);
+    throw error;
+  }
   revalidatePath("/");
   revalidatePath("/training");
   revalidatePath("/admin");
@@ -286,12 +305,16 @@ export async function deleteCourse(id: string) {
 }
 
 export async function deleteAttachment(id: string) {
-  await requireEditor();
-  const attachment = await prisma.attachment.delete({
-    where: { id },
-    include: { course: { include: { training: true } } },
-  });
-  await removeStoredFiles([attachment.url]);
+  const user = await requireEditor();
+  let attachment: { name: string; url: string; courseId: string; course: { slug: string; training: { slug: string } } };
+  try {
+    attachment = await prisma.attachment.delete({ where: { id }, include: { course: { include: { training: true } } } });
+    await removeStoredFiles([attachment.url]);
+    await recordAuditLog({ level: "WARNING", action: "DELETE_ATTACHMENT", message: `刪除附件「${attachment.name}」`, actor: user, resourceType: "Attachment", resourceId: id, metadata: { courseId: attachment.courseId } });
+  } catch (error) {
+    await recordAuditError({ action: "DELETE_ATTACHMENT", message: "刪除附件", actor: user, resourceType: "Attachment", resourceId: id }, error);
+    throw error;
+  }
   revalidatePath(`/admin/courses/${attachment.courseId}/edit`);
   revalidatePath(
     `/training/${attachment.course.training.slug}/courses/${attachment.course.slug}`,

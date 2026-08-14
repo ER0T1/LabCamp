@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.0.1-2563eb)
+![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、會員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.0.1 功能
+## v1.1.0 功能
 
 ### 公開內容
 
@@ -27,6 +27,8 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 個人頭像、電子信箱與密碼設定
 - `ADMIN`、`EDITOR`、`MEMBER` 三種角色
 - 管理員可調整會員角色或刪除會員
+- 管理員可查詢登入成功、失敗與登出日誌，並依事件、日期、Email 或 IP 篩選
+- 管理員可查看資訊、警告與錯誤三級系統日誌，追蹤內容及權限操作
 
 ### 內容管理
 
@@ -70,6 +72,7 @@ cp .env.example .env
 | `DATABASE_URL` | Prisma 連線字串 |
 | `AUTH_SECRET` | Auth.js 簽章密鑰 |
 | `AUTH_URL` / `NEXTAUTH_URL` | 網站公開網址 |
+| `LOGIN_LOG_PRIVATE_IP_FALLBACK` | 登入來源為內部網段時記錄的校園固定公網 IP |
 | `SEED_ADMIN_PASSWORD` | 初始管理員密碼 |
 | `LETSENCRYPT_EMAIL` | Let's Encrypt 通知信箱 |
 
@@ -122,6 +125,8 @@ npm run dev
 | `/account`、`/account/settings` | 帳號與個人設定 | 會員 |
 | `/admin` | 內容管理 | ADMIN／EDITOR |
 | `/admin/members` | 會員與角色管理 | ADMIN |
+| `/admin/login-logs` | 登入日誌與異常登入提示 | ADMIN |
+| `/admin/audit-logs` | 系統操作與錯誤日誌 | ADMIN |
 
 ## 檔案儲存
 
@@ -134,8 +139,12 @@ npm run dev
 設定 `.env` 後，使用以下指令建置並啟動完整服務：
 
 ```bash
-docker compose up -d --build
+docker compose build app migrate
+docker compose run --rm migrate
+docker compose up -d
 ```
+
+有新增 Prisma migration 時，請在重新建立應用程式容器前執行 `docker compose run --rm migrate`；此工具服務會透過 Docker network 連線 PostgreSQL，不需要將資料庫連接埠公開到主機。
 
 Compose 會啟動 `app`、`postgres` 與 `nginx`，並保存資料庫、上傳檔案及憑證。Nginx 範例設定使用 `labcamp.duckdns.org`；若部署至其他網域，請同步修改：
 

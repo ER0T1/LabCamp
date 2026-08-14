@@ -56,8 +56,9 @@ export function CourseEditorForm({
           <button>儲存課程 →</button>
         </div>
       </div>
-      <div className="editor-fields">
-        <label>
+      <div className="editor-fields-panel">
+        <div className="editor-fields">
+          <label>
           所屬訓練
           <select
             name="trainingId"
@@ -74,8 +75,8 @@ export function CourseEditorForm({
           {values.id && (
             <input type="hidden" name="trainingId" value={values.trainingId} />
           )}
-        </label>
-        <label>
+          </label>
+          <label>
           父課程
           <select name="parentId" defaultValue={values.parentId ?? ""}>
             <option value="">無（根課程）</option>
@@ -88,17 +89,17 @@ export function CourseEditorForm({
               ))}
           </select>
           <small>設為某課程的子課程</small>
-        </label>
-        <label>
+          </label>
+          <label>
           課程名稱
           <input name="title" defaultValue={values.title} required />
           <small>公開網址會依課程名稱自動產生</small>
-        </label>
-        <label>
+          </label>
+          <label>
           講師
           <input name="instructor" defaultValue={values.instructor} required />
-        </label>
-        <label>
+          </label>
+          <label>
           排序
           <input
             name="order"
@@ -107,20 +108,23 @@ export function CourseEditorForm({
             defaultValue={values.order ?? 0}
             required
           />
-        </label>
-        <label className="tags-wide">
-          標籤
-          <TagInput name="tags" initialValue={values.tags} suggestions={tagSuggestions}/>
-        </label>
-        <label className="wide">
-          課程簡介
-          <textarea
-            name="description"
-            defaultValue={values.description}
-            minLength={10}
-            required
-          />
-        </label>
+          </label>
+        </div>
+        <div className="editor-long-fields">
+          <label className="tags-wide">
+            標籤
+            <TagInput name="tags" initialValue={values.tags} suggestions={tagSuggestions}/>
+          </label>
+          <label className="wide">
+            課程簡介
+            <textarea
+              name="description"
+              defaultValue={values.description}
+              minLength={10}
+              required
+            />
+          </label>
+        </div>
       </div>
       <ClientRichTextEditor
         name="content"

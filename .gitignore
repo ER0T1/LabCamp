@@ -7,3 +7,4 @@ node_modules
 prisma/dev.db
 storage/uploads/*
 !storage/uploads/.gitkeep
+writing-block.md
