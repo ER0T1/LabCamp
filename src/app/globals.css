@@ -206,7 +206,7 @@ h1 em:after { content:""; position:absolute; height:.27em; background:var(--acid
 .editor-fields-panel{margin-bottom:14px;padding:20px;border:1px solid var(--line);background:var(--white)}
 .course-editor-form .editor-fields-panel>.editor-fields{margin:0;padding:0;border:0;background:transparent}
 .editor-long-fields{width:100%;min-width:0;margin-top:12px;display:flex;flex-direction:column;gap:12px}
-.editor-long-fields>label{width:100%;min-width:0;display:flex;flex-direction:column;gap:6px;font-size:9px;font-weight:700;letter-spacing:.05em}
+.editor-long-fields>label,.editor-long-fields>.tags-wide{width:100%;min-width:0;display:flex;flex-direction:column;gap:6px;font-size:9px;font-weight:700;letter-spacing:.05em}
 .editor-long-fields .tag-field,.editor-long-fields textarea{display:block;width:100%;min-width:0}
 .editor-long-fields textarea{min-height:64px;padding:9px;border:1px solid var(--line);background:white;resize:vertical}
 

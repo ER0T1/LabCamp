@@ -3,9 +3,9 @@
 import { KeyboardEvent, useMemo, useState } from "react";
 import { X } from "lucide-react";
 
-type Props = { name: string; initialValue?: string; suggestions: string[] };
+type Props = { name: string; inputId?: string; initialValue?: string; suggestions: string[] };
 
-export function TagInput({ name, initialValue = "", suggestions }: Props) {
+export function TagInput({ name, inputId, initialValue = "", suggestions }: Props) {
   const [tags, setTags] = useState(() => [...new Set(initialValue.split(",").map((tag) => tag.trim()).filter(Boolean))]);
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
@@ -33,7 +33,7 @@ export function TagInput({ name, initialValue = "", suggestions }: Props) {
     <input type="hidden" name={name} value={tags.join(",")}/>
     <div className="tag-input-shell" onClick={(event) => event.currentTarget.querySelector("input")?.focus()}>
       {tags.map((tag) => <span className="tag-chip" key={tag}>{tag}<button type="button" aria-label={`移除 ${tag}`} onClick={() => setTags((current) => current.filter((item) => item !== tag))}><X size={12}/></button></span>)}
-      <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKeyDown} onFocus={() => setFocused(true)} onBlur={() => setTimeout(() => setFocused(false), 120)} placeholder={tags.length ? "新增標籤…" : "搜尋或輸入標籤…"} autoComplete="off"/>
+      <input id={inputId} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKeyDown} onFocus={() => setFocused(true)} onBlur={() => setTimeout(() => setFocused(false), 120)} placeholder={tags.length ? "新增標籤…" : "搜尋或輸入標籤…"} autoComplete="off"/>
     </div>
     {focused && (matches.length > 0 || query.trim()) && <div className="tag-suggestions">
       {matches.map((tag) => <button type="button" key={tag} onMouseDown={(event) => event.preventDefault()} onClick={() => addTag(tag)}><span>{tag}</span><small>既有標籤</small></button>)}
