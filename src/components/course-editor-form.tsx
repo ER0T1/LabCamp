@@ -108,10 +108,10 @@ export function CourseEditorForm({
           </label>
         </div>
         <div className="editor-long-fields">
-          <label className="tags-wide">
-            標籤
-            <TagInput name="tags" initialValue={values.tags} suggestions={tagSuggestions}/>
-          </label>
+          <div className="tags-wide">
+            <label htmlFor="course-tags">標籤</label>
+            <TagInput inputId="course-tags" name="tags" initialValue={values.tags} suggestions={tagSuggestions}/>
+          </div>
           <label className="wide">
             課程簡介
             <textarea
