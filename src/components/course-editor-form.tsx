@@ -1,9 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ClientRichTextEditor } from "@/components/client-rich-text-editor";
 import { NewCourseAttachments } from "@/components/new-course-attachments";
 import { TagInput } from "@/components/tag-input";
 import { CoursePreview } from "@/components/course-preview";
 import { StyledSelect } from "@/components/styled-select";
+import type { ExistingAttachment } from "@/components/existing-attachment-picker";
+import { CourseOrderEditor, type OrderableCourse } from "@/components/course-order-editor";
 
 type Values = {
   id?: string;
@@ -22,9 +27,10 @@ type Props = {
   action: (formData: FormData) => void | Promise<void>;
   values?: Values;
   trainings: { id: string; title: string; courses?: { id: string; title: string; trainingId: string }[] }[];
-  parentCourses?: { id: string; title: string; trainingId: string }[];
+  parentCourses?: OrderableCourse[];
   tagSuggestions?: string[];
   saved?: boolean;
+  availableAttachments?: ExistingAttachment[];
 };
 
 export function CourseEditorForm({
@@ -34,8 +40,14 @@ export function CourseEditorForm({
   parentCourses = [],
   tagSuggestions = [],
   saved = false,
+  availableAttachments = [],
 }: Props) {
   const availableParents = parentCourses.length > 0 ? parentCourses : trainings.flatMap((training) => training.courses ?? []);
+  const [trainingId, setTrainingId] = useState(values.trainingId ?? trainings[0]?.id ?? "");
+  const [parentId, setParentId] = useState(values.parentId ?? null);
+  const [courseTitle, setCourseTitle] = useState(values.title ?? "");
+  const siblingCount = parentCourses.filter((course) => course.trainingId === trainingId && (course.parentId ?? null) === parentId).length;
+  const remainsInOriginalLayer = trainingId === values.trainingId && parentId === (values.parentId ?? null);
   return (
     <form action={action} className="course-editor-form">
       {values.id && <input type="hidden" name="id" value={values.id} />}
@@ -66,6 +78,8 @@ export function CourseEditorForm({
           <StyledSelect
             name="trainingId"
             defaultValue={values.trainingId}
+            value={trainingId}
+            onValueChange={(value) => { setTrainingId(value); setParentId(null); }}
             disabled={Boolean(values.id)}
             required
             ariaLabel="所屬訓練"
@@ -80,33 +94,33 @@ export function CourseEditorForm({
           <StyledSelect
             name="parentId"
             defaultValue={values.parentId ?? ""}
+            value={parentId ?? ""}
+            onValueChange={(value) => setParentId(value || null)}
             ariaLabel="父課程"
             options={[{ value: "", label: "無（根課程）" }, ...availableParents
-              .filter((item) => item.trainingId === values.trainingId && item.id !== values.id)
+              .filter((item) => item.trainingId === trainingId && item.id !== values.id)
               .map((item) => ({ value: item.id, label: item.title }))]}
           />
           <small>設為某課程的子課程</small>
           </label>
           <label>
           課程名稱
-          <input name="title" defaultValue={values.title} required />
+          <input name="title" defaultValue={values.title} onChange={(event) => setCourseTitle(event.target.value)} required />
           <small>公開網址會依課程名稱自動產生</small>
           </label>
           <label>
           講師
           <input name="instructor" defaultValue={values.instructor} required />
           </label>
-          <label>
-          排序
-          <input
-            name="order"
-            type="number"
-            min="0"
-            defaultValue={values.order ?? 0}
-            required
-          />
-          </label>
         </div>
+        <CourseOrderEditor
+          courses={parentCourses}
+          currentId={values.id}
+          currentTitle={courseTitle}
+          currentOrder={remainsInOriginalLayer ? values.order ?? siblingCount : siblingCount}
+          trainingId={trainingId}
+          parentId={parentId}
+        />
         <div className="editor-long-fields">
           <div className="tags-wide">
             <label htmlFor="course-tags">標籤</label>
@@ -128,7 +142,7 @@ export function CourseEditorForm({
         initialData={values.content}
         courseId={values.id}
       />
-      {!values.id && <NewCourseAttachments />}
+      {!values.id && <NewCourseAttachments availableAttachments={availableAttachments}/>}
     </form>
   );
 }

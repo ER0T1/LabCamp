@@ -99,6 +99,60 @@ async function uniqueTrainingSlug(title: string, excludeId?: string) {
   return slug;
 }
 
+async function syncSiblingOrder({
+  courseId,
+  trainingId,
+  parentId,
+  preferredOrder,
+  serializedOrder,
+}: {
+  courseId: string;
+  trainingId: string;
+  parentId: string | null;
+  preferredOrder: number;
+  serializedOrder: FormDataEntryValue | null;
+}) {
+  const siblings = await prisma.course.findMany({
+    where: { trainingId, parentId },
+    orderBy: [{ order: "asc" }, { title: "asc" }],
+    select: { id: true },
+  });
+  const validIds = new Set(siblings.map((course) => course.id));
+  let requestedIds: string[] = [];
+  if (typeof serializedOrder === "string" && serializedOrder.length < 100_000) {
+    try {
+      const parsed: unknown = JSON.parse(serializedOrder);
+      if (Array.isArray(parsed)) requestedIds = parsed
+        .filter((id): id is string => typeof id === "string")
+        .map((id) => id === "__current_course__" ? courseId : id);
+    } catch {
+      requestedIds = [];
+    }
+  }
+  const seen = new Set<string>();
+  const orderedIds = requestedIds.filter((id) => validIds.has(id) && !seen.has(id) && seen.add(id));
+  for (const sibling of siblings) {
+    if (sibling.id !== courseId && !seen.has(sibling.id)) {
+      orderedIds.push(sibling.id);
+      seen.add(sibling.id);
+    }
+  }
+  if (!seen.has(courseId) && validIds.has(courseId)) {
+    orderedIds.splice(Math.min(Math.max(preferredOrder, 0), orderedIds.length), 0, courseId);
+    seen.add(courseId);
+  }
+  await prisma.$transaction(orderedIds.map((id, order) => prisma.course.update({ where: { id }, data: { order } })));
+}
+
+async function normalizeSiblingOrders(trainingId: string, parentId: string | null) {
+  const siblings = await prisma.course.findMany({
+    where: { trainingId, parentId },
+    orderBy: [{ order: "asc" }, { title: "asc" }],
+    select: { id: true },
+  });
+  await prisma.$transaction(siblings.map((course, order) => prisma.course.update({ where: { id: course.id }, data: { order } })));
+}
+
 export async function createTraining(formData: FormData) {
   const user = await requireEditor();
   try {
@@ -154,14 +208,25 @@ export async function createCourse(formData: FormData) {
     }
     const slug = await uniqueCourseSlug(input.title, input.trainingId);
     const course = await prisma.course.create({ data: { ...input, slug, published: formData.get("published") === "on" } });
+    await syncSiblingOrder({ courseId: course.id, trainingId: input.trainingId, parentId: input.parentId, preferredOrder: input.order, serializedOrder: formData.get("siblingOrder") });
     await syncTags(course.id, String(formData.get("tags") ?? ""));
     await syncEmbeddedUploads(course.id, input.content);
     const files = formData.getAll("attachments").filter((value): value is File => value instanceof File && value.size > 0);
+    const sourceIds = [...new Set(formData.getAll("existingAttachmentIds").map(String).filter(Boolean))];
+    const existingAttachments = sourceIds.length > 0
+      ? await prisma.attachment.findMany({ where: { id: { in: sourceIds } }, select: { name: true, url: true, type: true } })
+      : [];
+    const attachedUrls = new Set<string>();
+    for (const attachment of existingAttachments) {
+      if (attachedUrls.has(attachment.url)) continue;
+      attachedUrls.add(attachment.url);
+      await prisma.attachment.create({ data: { courseId: course.id, ...attachment } });
+    }
     for (const file of files) {
       const uploaded = await saveUploadedFile(file);
       await prisma.attachment.create({ data: { courseId: course.id, ...uploaded } });
     }
-    await recordAuditLog({ action: "CREATE_COURSE", message: `建立課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: course.id, metadata: { attachmentCount: files.length } });
+    await recordAuditLog({ action: "CREATE_COURSE", message: `建立課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: course.id, metadata: { attachmentCount: files.length + attachedUrls.size } });
   } catch (error) {
     await recordAuditError({ action: "CREATE_COURSE", message: "建立課程", actor: user, resourceType: "Course" }, error);
     throw error;
@@ -213,20 +278,30 @@ async function syncEmbeddedUploads(courseId: string, content: string) {
   }
 }
 
-async function removeStoredFiles(urls: string[]) {
+async function removeUnreferencedStoredFiles(urls: string[]) {
+  const uniqueUrls = [...new Set(urls)];
+  if (uniqueUrls.length === 0) return [];
+  const referenced = await prisma.attachment.findMany({
+    where: { url: { in: uniqueUrls } },
+    select: { url: true },
+    distinct: ["url"],
+  });
+  const referencedUrls = new Set(referenced.map((attachment) => attachment.url));
+  const removableUrls = uniqueUrls.filter((url) => !referencedUrls.has(url));
   await Promise.all(
-    urls.map(async (url) => {
+    removableUrls.map(async (url) => {
       const name = storedFileName(url);
       if (name) await unlink(uploadPath(name)).catch(() => undefined);
     }),
   );
+  return removableUrls;
 }
 
 export async function updateCourse(formData: FormData) {
   const user = await requireEditor();
   const input = updateCourseSchema.parse(Object.fromEntries(formData));
   const { id, tags, ...data } = input;
-  let existing: { slug: string; trainingId: string; training: { slug: string } };
+  let existing: { slug: string; trainingId: string; parentId: string | null; training: { slug: string } };
   let course: { id: string; title: string; slug: string; training: { slug: string } };
   try {
     existing = await prisma.course.findUniqueOrThrow({ where: { id }, include: { training: true } });
@@ -250,6 +325,8 @@ export async function updateCourse(formData: FormData) {
       data: { ...data, slug, published: formData.get("published") === "on" },
       include: { training: true },
     });
+    await syncSiblingOrder({ courseId: id, trainingId: existing.trainingId, parentId: data.parentId, preferredOrder: data.order, serializedOrder: formData.get("siblingOrder") });
+    if (existing.parentId !== data.parentId) await normalizeSiblingOrders(existing.trainingId, existing.parentId);
     await syncTags(id, tags ?? "");
     await syncEmbeddedUploads(id, data.content);
     await recordAuditLog({ action: "UPDATE_COURSE", message: `更新課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: course.id });
@@ -273,8 +350,8 @@ export async function deleteTraining(id: string) {
       prisma.attachment.findMany({ where: { course: { trainingId: id } }, select: { url: true } }),
     ]);
     await prisma.training.delete({ where: { id } });
-    await removeStoredFiles(attachments.map((item) => item.url));
-    await recordAuditLog({ level: "WARNING", action: "DELETE_TRAINING", message: `刪除訓練「${training.title}」`, actor: user, resourceType: "Training", resourceId: id, metadata: { deletedAttachmentCount: attachments.length } });
+    const removedFiles = await removeUnreferencedStoredFiles(attachments.map((item) => item.url));
+    await recordAuditLog({ level: "WARNING", action: "DELETE_TRAINING", message: `刪除訓練「${training.title}」`, actor: user, resourceType: "Training", resourceId: id, metadata: { deletedAttachmentCount: attachments.length, deletedFileCount: removedFiles.length } });
   } catch (error) {
     await recordAuditError({ action: "DELETE_TRAINING", message: "刪除訓練", actor: user, resourceType: "Training", resourceId: id }, error);
     throw error;
@@ -290,8 +367,8 @@ export async function deleteCourse(id: string) {
   let course: { title: string; slug: string; training: { slug: string }; attachments: { url: string }[] };
   try {
     course = await prisma.course.delete({ where: { id }, include: { training: true, attachments: true } });
-    await removeStoredFiles(course.attachments.map((item) => item.url));
-    await recordAuditLog({ level: "WARNING", action: "DELETE_COURSE", message: `刪除課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: id, metadata: { deletedAttachmentCount: course.attachments.length } });
+    const removedFiles = await removeUnreferencedStoredFiles(course.attachments.map((item) => item.url));
+    await recordAuditLog({ level: "WARNING", action: "DELETE_COURSE", message: `刪除課程「${course.title}」`, actor: user, resourceType: "Course", resourceId: id, metadata: { deletedAttachmentCount: course.attachments.length, deletedFileCount: removedFiles.length } });
   } catch (error) {
     await recordAuditError({ action: "DELETE_COURSE", message: "刪除課程", actor: user, resourceType: "Course", resourceId: id }, error);
     throw error;
@@ -309,8 +386,8 @@ export async function deleteAttachment(id: string) {
   let attachment: { name: string; url: string; courseId: string; course: { slug: string; training: { slug: string } } };
   try {
     attachment = await prisma.attachment.delete({ where: { id }, include: { course: { include: { training: true } } } });
-    await removeStoredFiles([attachment.url]);
-    await recordAuditLog({ level: "WARNING", action: "DELETE_ATTACHMENT", message: `刪除附件「${attachment.name}」`, actor: user, resourceType: "Attachment", resourceId: id, metadata: { courseId: attachment.courseId } });
+    const removedFiles = await removeUnreferencedStoredFiles([attachment.url]);
+    await recordAuditLog({ level: "WARNING", action: "DELETE_ATTACHMENT", message: `刪除附件「${attachment.name}」`, actor: user, resourceType: "Attachment", resourceId: id, metadata: { courseId: attachment.courseId, deletedFile: removedFiles.length > 0 } });
   } catch (error) {
     await recordAuditError({ action: "DELETE_ATTACHMENT", message: "刪除附件", actor: user, resourceType: "Attachment", resourceId: id }, error);
     throw error;

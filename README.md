@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.1.2-2563eb)
+![Version](https://img.shields.io/badge/version-v1.2.0-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.1.2 功能
+## v1.2.0 功能
 
 ### 公開內容
 
@@ -29,15 +29,25 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 管理員可調整成員角色或刪除成員
 - 管理員可查詢登入成功、失敗與登出日誌，並依事件、日期、Email 或 IP 篩選
 - 管理員可查看資訊、警告與錯誤三級系統日誌，追蹤內容及權限操作
+- 管理員與編輯者可查看 GitHub 更新日誌，搜尋提交並展開逐檔案變更
 
 ### 內容管理
 
 - 新增、編輯、預覽、發布及刪除訓練與課程
 - 課程支援父子階層、自動產生唯一 slug 與標籤
+- 同層課程以拖曳清單排序，切換父課程時會自動顯示對應層級
 - CKEditor 5 富文字編輯器
-- 圖片內嵌與多檔附件上傳
-- 刪除內容時同步清理實體附件
+- 圖片內嵌、多檔附件上傳，以及選用其他課程已上傳的附件
+- 新增與編輯課程共用一致的附件面板
+- 刪除附件、課程或訓練時會檢查檔案引用，僅在沒有其他課程使用時刪除實體檔案
 - Zod Server Actions 驗證與 HTML sanitizer
+
+### v1.2.0 重點更新
+
+- 課程排序由數字欄位改為同層課程拖曳清單
+- 附件可跨課程重複使用，並加入引用安全的實體檔案清理
+- 管理後台新增 `/admin/update-logs`，完整呈現 Git 提交、作者、時間、增刪行數及檔案變更
+- Production build 會自動從目前 Git `HEAD` 產生更新日誌索引
 
 ## 技術架構
 
@@ -106,7 +116,7 @@ npm run dev
 | 指令 | 說明 |
 | --- | --- |
 | `npm run dev` | 啟動開發伺服器 |
-| `npm run build` | 建立 production build |
+| `npm run build` | 產生 Git 更新日誌並建立 production build |
 | `npm start` | 啟動 production server |
 | `npm run lint` | 執行 TypeScript 型別檢查 |
 | `npm run db:seed` | 建立初始管理員 |
@@ -127,10 +137,13 @@ npm run dev
 | `/admin/members` | 成員與角色管理 | ADMIN |
 | `/admin/login-logs` | 登入日誌與異常登入提示 | ADMIN |
 | `/admin/audit-logs` | 系統操作與錯誤日誌 | ADMIN |
+| `/admin/update-logs` | GitHub 提交與逐檔案更新日誌 | ADMIN／EDITOR |
 
 ## 檔案儲存
 
-圖片與課程附件透過 `/api/uploads` 寫入 `storage/uploads`，資料庫僅保存檔案 URL。支援 JPEG、PNG、GIF、WebP、AVIF、PDF、ZIP 與常見文字／程式碼格式，單檔上限為 20 MB；上傳限 `ADMIN` 或 `EDITOR`。
+圖片與課程附件透過 `/api/uploads` 寫入 `storage/uploads`，資料庫保存課程與檔案 URL 的關聯。同一個實體檔案可由多門課程共用；移除附件或刪除課程時，系統會先檢查其他課程是否仍在使用，只有最後一筆引用移除後才刪除實體檔案。
+
+支援 JPEG、PNG、GIF、WebP、AVIF、PDF、ZIP 與常見文字／程式碼格式，單檔上限為 20 MB；上傳與選用既有附件限 `ADMIN` 或 `EDITOR`。
 
 正式部署時必須將上傳目錄掛載至持久化磁碟。若部署至無狀態平台，請改接 S3、Cloudflare R2 或相容的物件儲存服務。
 
@@ -160,6 +173,8 @@ Compose 會啟動 `app`、`postgres` 與 `nginx`，並保存資料庫、上傳�
 
 `deploy/labcamp.crontab` 提供每日自動續期檢查範例。
 
+Production build 會在 builder 階段讀取 `.git` 並產生 `src/generated/github-commits.json`。新的 GitHub commit 需先拉取到部署主機，再重新建置 `app` 容器才會出現在更新日誌；最終執行中的 App image 不包含 `.git`。
+
 ## 專案結構
 
 ```text
@@ -167,10 +182,12 @@ LabCamp/
 ├── deploy/             # Nginx、Certbot 與 cron 設定
 ├── prisma/             # Prisma schema 與 seed
 ├── public/             # 靜態資源與離線頁面
+├── scripts/            # 建置期更新日誌產生器
 ├── src/
 │   ├── actions/        # Server Actions
 │   ├── app/            # App Router 頁面與 API routes
 │   ├── components/     # UI 與表單元件
+│   ├── generated/      # 建置期產生的 Git 提交索引
 │   └── lib/            # Repository、上傳與共用工具
 ├── storage/uploads/    # 本機上傳檔案（不納入版本控制）
 ├── Dockerfile

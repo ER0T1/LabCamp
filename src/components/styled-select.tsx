@@ -15,6 +15,8 @@ type Props = {
   disabled?: boolean;
   required?: boolean;
   ariaLabel?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 };
 
 export function StyledSelect({
@@ -24,11 +26,14 @@ export function StyledSelect({
   disabled = false,
   required = false,
   ariaLabel,
+  value: controlledValue,
+  onValueChange,
 }: Props) {
   const initialValue = options.some((option) => option.value === defaultValue)
     ? defaultValue!
     : options[0]?.value ?? "";
-  const [value, setValue] = useState(initialValue);
+  const [internalValue, setInternalValue] = useState(initialValue);
+  const value = controlledValue ?? internalValue;
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(() => Math.max(0, options.findIndex((option) => option.value === initialValue)));
   const rootRef = useRef<HTMLDivElement>(null);
@@ -46,7 +51,8 @@ export function StyledSelect({
   const choose = (index: number) => {
     const option = options[index];
     if (!option) return;
-    setValue(option.value);
+    setInternalValue(option.value);
+    onValueChange?.(option.value);
     setHighlighted(index);
     setOpen(false);
   };

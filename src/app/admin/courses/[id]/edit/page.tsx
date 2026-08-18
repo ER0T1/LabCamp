@@ -10,6 +10,8 @@ import { CourseEditorForm } from "@/components/course-editor-form";
 import { toEditorHtml } from "@/lib/content";
 import { DeleteForm } from "@/components/delete-form";
 import { AttachmentUploader } from "@/components/attachment-uploader";
+import { ExistingAttachmentPicker } from "@/components/existing-attachment-picker";
+import { CourseAttachmentsPanel } from "@/components/course-attachments-panel";
 
 export default async function EditCoursePage({
   params,
@@ -22,7 +24,7 @@ export default async function EditCoursePage({
   if (!session?.user) redirect("/login");
   if (session.user.role === "MEMBER") redirect("/");
   const { id } = await params;
-  const [course, trainings, parentCourses, tags] = await Promise.all([
+  const [course, trainings, parentCourses, tags, uploadedAttachments] = await Promise.all([
     prisma.course.findUnique({
       where: { id },
       include: {
@@ -37,11 +39,29 @@ export default async function EditCoursePage({
     prisma.course.findMany({
       where: { id: { not: id } },
       orderBy: { order: "asc" },
-      select: { id: true, title: true, trainingId: true },
+      select: { id: true, title: true, trainingId: true, parentId: true, order: true },
     }),
     prisma.tag.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    prisma.attachment.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, url: true, type: true, course: { select: { title: true } } },
+    }),
   ]);
   if (!course) notFound();
+  const currentUrls = new Set(course.attachments.map((attachment) => attachment.url));
+  const seenUrls = new Set<string>();
+  const availableAttachments = uploadedAttachments
+    .filter((attachment) => {
+      if (currentUrls.has(attachment.url) || seenUrls.has(attachment.url)) return false;
+      seenUrls.add(attachment.url);
+      return true;
+    })
+    .map((attachment) => ({
+      id: attachment.id,
+      name: attachment.name,
+      type: attachment.type,
+      courseTitle: attachment.course.title,
+    }));
   return (
     <div className="editor-page">
       <CourseEditorForm
@@ -56,56 +76,38 @@ export default async function EditCoursePage({
           tags: course.tags.map((item) => item.tag.name).join(", "),
         }}
       />
-      <section className="attachment-panel">
-        <header>
-          <div>
-            <p className="eyebrow">COURSE FILES</p>
-            <h2>課程附件</h2>
-            <p>圖片可直接拖曳至編輯器；PDF、壓縮檔與程式碼請由這裡上傳。</p>
-          </div>
-          <AttachmentUploader courseId={course.id} />
-        </header>
-        <div className="attachment-list">
-          {course.attachments.map((attachment) => (
-            <div key={attachment.id}>
-              <span className="file-icon">
-                {attachment.type.startsWith("image") ? "IMG" : "FILE"}
-              </span>
-              <div>
-                <a href={attachment.url} target="_blank" rel="noreferrer">
-                  {attachment.name}
-                </a>
-                <small>
-                  {attachment.type} ·{" "}
-                  {attachment.createdAt.toLocaleDateString("zh-TW")}
-                </small>
-              </div>
-              <DeleteForm
-                compact
-                action={deleteAttachment.bind(null, attachment.id)}
-                label="移除"
-                confirmMessage={`確定要刪除附件「${attachment.name}」嗎？`}
-              />
-            </div>
-          ))}
-          {course.attachments.length === 0 && (
-            <p className="empty-attachments">目前沒有獨立附件。</p>
-          )}
-        </div>
-      </section>
+      <CourseAttachmentsPanel
+        items={course.attachments.map((attachment) => ({
+          id: attachment.id,
+          name: attachment.name,
+          type: attachment.type,
+          href: attachment.url,
+          detail: `${attachment.type} · ${attachment.createdAt.toLocaleDateString("zh-TW")}`,
+          action: <DeleteForm
+            compact
+            action={deleteAttachment.bind(null, attachment.id)}
+            label="移除"
+            confirmMessage={`確定要移除附件「${attachment.name}」嗎？若其他課程仍在使用，原始檔案會保留。`}
+          />,
+        }))}
+        actions={<>
+            <AttachmentUploader courseId={course.id} />
+            <ExistingAttachmentPicker courseId={course.id} attachments={availableAttachments}/>
+        </>}
+      />
       {session.user.role === "ADMIN" && (
         <section className="danger-zone">
           <div>
             <p className="eyebrow">DANGER ZONE</p>
             <h2>刪除課程</h2>
             <p>
-              刪除後將無法復原，課程教材、標籤關聯、附件與相關連結都會一併移除。
+              刪除後將無法復原；其他課程仍在使用的共用附件檔案會保留。
             </p>
           </div>
           <DeleteForm
             action={deleteCourse.bind(null, course.id)}
             label="刪除這門課程"
-            confirmMessage={`確定要永久刪除「${course.title}」嗎？此操作無法復原。`}
+            confirmMessage={`確定要永久刪除「${course.title}」嗎？共用附件會保留給其他課程，此操作無法復原。`}
           />
         </section>
       )}
