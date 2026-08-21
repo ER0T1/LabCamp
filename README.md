@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.2.0-2563eb)
+![Version](https://img.shields.io/badge/version-v1.2.1-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.2.0 功能
+## v1.2.1 功能
 
 ### 公開內容
 
@@ -39,15 +39,19 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - CKEditor 5 富文字編輯器
 - 圖片內嵌、多檔附件上傳，以及選用其他課程已上傳的附件
 - 新增與編輯課程共用一致的附件面板
+- 課程與訓練編輯器採用一致的 paper 面板、直角控制項及發布 switch
 - 刪除附件、課程或訓練時會檢查檔案引用，僅在沒有其他課程使用時刪除實體檔案
 - Zod Server Actions 驗證與 HTML sanitizer
 
-### v1.2.0 重點更新
+### v1.2.1 重點更新
 
 - 課程排序由數字欄位改為同層課程拖曳清單
 - 附件可跨課程重複使用，並加入引用安全的實體檔案清理
 - 管理後台新增 `/admin/update-logs`，完整呈現 Git 提交、作者、時間、增刪行數及檔案變更
 - Production build 會自動從目前 Git `HEAD` 產生更新日誌索引
+- 新增與編輯課程／訓練依統一樣式準則重整，明確設定跨 Windows、iOS 與 Android 的文字色彩、直角邊框及互動狀態
+- 響應式斷點統一為 `1200px`、`1000px`、`750px` 與 `550px`，改善欄位對齊、附件間距及小螢幕滿寬操作
+- 修正 CKEditor 工具列邊框、標籤選單層級，以及課程預覽與排序控制的鍵盤可操作性
 
 ## 技術架構
 

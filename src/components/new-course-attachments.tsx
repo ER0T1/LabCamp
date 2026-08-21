@@ -34,7 +34,7 @@ export function NewCourseAttachments({ availableAttachments }: { availableAttach
       emptyMessage="目前沒有選擇附件。"
       actions={<>
         <label className="attachment-upload">
-          <Upload size={16}/><span>新增附件</span>
+          <Upload size={16} aria-hidden="true"/><span>新增附件</span>
           <input name="attachments" type="file" multiple accept={accept} onChange={(event) => setFiles(Array.from(event.target.files ?? []))}/>
           <small>{files.length > 0 ? `已選擇 ${files.length} 個檔案` : "最大 20 MB"}</small>
         </label>

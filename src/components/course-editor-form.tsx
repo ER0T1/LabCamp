@@ -59,7 +59,7 @@ export function CourseEditorForm({
         </div>
         <div className="editor-actions">
           {saved && <span className="saved-badge">已儲存</span>}
-          <label className="publish-check">
+          <label className="publish-check publication-switch">
             <input
               name="published"
               type="checkbox"
@@ -73,44 +73,44 @@ export function CourseEditorForm({
       </div>
       <div className="editor-fields-panel">
         <div className="editor-fields">
-          <label>
-          所屬訓練
-          <StyledSelect
-            name="trainingId"
-            defaultValue={values.trainingId}
-            value={trainingId}
-            onValueChange={(value) => { setTrainingId(value); setParentId(null); }}
-            disabled={Boolean(values.id)}
-            required
-            ariaLabel="所屬訓練"
-            options={trainings.map((item) => ({ value: item.id, label: item.title }))}
-          />
-          {values.id && (
-            <input type="hidden" name="trainingId" value={values.trainingId} />
-          )}
+          <label className="course-field-training">
+            所屬訓練
+            <StyledSelect
+              name="trainingId"
+              defaultValue={values.trainingId}
+              value={trainingId}
+              onValueChange={(value) => { setTrainingId(value); setParentId(null); }}
+              disabled={Boolean(values.id)}
+              required
+              ariaLabel="所屬訓練"
+              options={trainings.map((item) => ({ value: item.id, label: item.title }))}
+            />
+            {values.id && (
+              <input type="hidden" name="trainingId" value={values.trainingId} />
+            )}
           </label>
-          <label>
-          父課程
-          <StyledSelect
-            name="parentId"
-            defaultValue={values.parentId ?? ""}
-            value={parentId ?? ""}
-            onValueChange={(value) => setParentId(value || null)}
-            ariaLabel="父課程"
-            options={[{ value: "", label: "無（根課程）" }, ...availableParents
-              .filter((item) => item.trainingId === trainingId && item.id !== values.id)
-              .map((item) => ({ value: item.id, label: item.title }))]}
-          />
-          <small>設為某課程的子課程</small>
+          <label className="course-field-parent">
+            父課程
+            <StyledSelect
+              name="parentId"
+              defaultValue={values.parentId ?? ""}
+              value={parentId ?? ""}
+              onValueChange={(value) => setParentId(value || null)}
+              ariaLabel="父課程"
+              options={[{ value: "", label: "無（根課程）" }, ...availableParents
+                .filter((item) => item.trainingId === trainingId && item.id !== values.id)
+                .map((item) => ({ value: item.id, label: item.title }))]}
+            />
+            <small>設為某課程的子課程</small>
           </label>
-          <label>
-          課程名稱
-          <input name="title" defaultValue={values.title} onChange={(event) => setCourseTitle(event.target.value)} required />
-          <small>公開網址會依課程名稱自動產生</small>
+          <label className="course-field-title">
+            課程名稱
+            <input type="text" name="title" defaultValue={values.title} onChange={(event) => setCourseTitle(event.target.value)} required />
+            <small>公開網址會依課程名稱自動產生</small>
           </label>
-          <label>
-          講師
-          <input name="instructor" defaultValue={values.instructor} required />
+          <label className="course-field-instructor">
+            講師
+            <input type="text" name="instructor" defaultValue={values.instructor} required />
           </label>
         </div>
         <CourseOrderEditor
@@ -126,7 +126,7 @@ export function CourseEditorForm({
             <label htmlFor="course-tags">標籤</label>
             <TagInput inputId="course-tags" name="tags" initialValue={values.tags} suggestions={tagSuggestions}/>
           </div>
-          <label className="wide">
+          <label className="wide course-description-field">
             課程簡介
             <textarea
               name="description"

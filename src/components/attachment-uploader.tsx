@@ -23,5 +23,5 @@ export function AttachmentUploader({ courseId }: { courseId: string }) {
     finally { if (inputRef.current) inputRef.current.value = ""; }
   }
 
-  return <label className="attachment-upload"><Upload size={16}/><span>新增附件</span><input ref={inputRef} type="file" onChange={upload} accept="image/jpeg,image/png,image/gif,image/webp,image/avif,application/pdf,application/zip,.txt,.md,.csv,.json,.js,.ts,.tsx,.jsx,.py,.sql,.yml,.yaml"/><small>{status || "最大 20 MB"}</small></label>;
+  return <label className="attachment-upload"><Upload size={16} aria-hidden="true"/><span>新增附件</span><input ref={inputRef} type="file" onChange={upload} accept="image/jpeg,image/png,image/gif,image/webp,image/avif,application/pdf,application/zip,.txt,.md,.csv,.json,.js,.ts,.tsx,.jsx,.py,.sql,.yml,.yaml"/><small role="status">{status || "最大 20 MB"}</small></label>;
 }

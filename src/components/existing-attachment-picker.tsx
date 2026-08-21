@@ -62,7 +62,7 @@ export function ExistingAttachmentPicker({
   }
 
   return <>
-    <button className="attachment-picker-trigger" type="button" onClick={() => dialogRef.current?.showModal()}>
+    <button className="attachment-picker-trigger" type="button" aria-haspopup="dialog" onClick={() => dialogRef.current?.showModal()}>
       <FolderOpen size={16}/><span>選擇附件</span><small>{attachments.length} 個可用檔案</small>
     </button>
     <dialog ref={dialogRef} className="attachment-picker-dialog" onClose={() => setStatus("")}>
@@ -71,7 +71,7 @@ export function ExistingAttachmentPicker({
         <button type="button" aria-label="關閉" onClick={() => dialogRef.current?.close()}><X size={19}/></button>
       </header>
       <label className="attachment-picker-search">
-        <Search size={16}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜尋檔名或課程名稱" autoFocus/>
+        <Search size={16} aria-hidden="true"/><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜尋檔名或課程名稱" aria-label="搜尋檔名或課程名稱" autoFocus/>
       </label>
       <div className="attachment-picker-list">
         {filtered.map((attachment) => <div key={attachment.id}>
@@ -83,7 +83,7 @@ export function ExistingAttachmentPicker({
         </div>)}
         {filtered.length === 0 && <p className="empty-attachments">{attachments.length === 0 ? "目前沒有其他已上傳的檔案。" : "找不到符合的檔案。"}</p>}
       </div>
-      {status && <p className="attachment-picker-error">{status}</p>}
+      {status && <p className="attachment-picker-error" role="alert">{status}</p>}
     </dialog>
   </>;
 }

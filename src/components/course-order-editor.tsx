@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 
 export type OrderableCourse = {
   id: string;
@@ -53,6 +53,17 @@ export function CourseOrderEditor({
       return next;
     });
   };
+  const moveBy = (id: string, offset: number) => {
+    setOrderedIds((items) => {
+      const index = items.indexOf(id);
+      const destination = index + offset;
+      if (index < 0 || destination < 0 || destination >= items.length) return items;
+      const next = [...items];
+      next.splice(index, 1);
+      next.splice(destination, 0, id);
+      return next;
+    });
+  };
   const currentPosition = Math.max(0, orderedIds.indexOf(currentKey));
 
   return <div className="course-order-editor">
@@ -62,12 +73,13 @@ export function CourseOrderEditor({
     </div>
     <input type="hidden" name="order" value={currentPosition}/>
     <input type="hidden" name="siblingOrder" value={JSON.stringify(orderedIds)}/>
-    <div className="course-order-list">
+    <div className="course-order-list" role="list" aria-label="同層課程排序">
       {orderedIds.map((id, index) => {
         const isCurrent = id === currentKey;
         const title = isCurrent ? currentTitle.trim() || "未命名的新課程" : byId.get(id)?.title ?? "未知課程";
         return <div
           key={id}
+          role="listitem"
           className={`${isCurrent ? "current " : ""}${draggedId === id ? "dragging" : ""}`.trim()}
           draggable
           onDragStart={(event) => {
@@ -92,7 +104,11 @@ export function CourseOrderEditor({
           <GripVertical aria-hidden="true"/>
           <span>{String(index + 1).padStart(2, "0")}</span>
           <b>{title}</b>
-          {isCurrent && <small>{currentId ? "目前編輯" : "新增課程"}</small>}
+          <div className="course-order-actions">
+            {isCurrent && <small>{currentId ? "目前編輯" : "新增課程"}</small>}
+            <button type="button" disabled={index === 0} onClick={() => moveBy(id, -1)} aria-label={`將「${title}」往上移`}><ChevronUp aria-hidden="true"/></button>
+            <button type="button" disabled={index === orderedIds.length - 1} onClick={() => moveBy(id, 1)} aria-label={`將「${title}」往下移`}><ChevronDown aria-hidden="true"/></button>
+          </div>
         </div>;
       })}
     </div>
