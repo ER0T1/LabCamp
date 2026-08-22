@@ -38,17 +38,19 @@ export default async function NewCoursePage({
   const preferred = (await searchParams).training;
   return (
     <div className="editor-page">
-      <CourseEditorForm
-        action={createCourse}
-        trainings={trainings}
-        parentCourses={parentCourses}
-        tagSuggestions={tags.map((tag) => tag.name)}
-        availableAttachments={availableAttachments}
-        values={{
-          trainingId: preferred ?? trainings[0]?.id,
-          content: "<h2>這堂課會帶走什麼</h2><p>從這裡開始撰寫課程內容。</p>",
-        }}
-      />
+      <div className="editor-workspace page-shell">
+        <CourseEditorForm
+          action={createCourse}
+          trainings={trainings}
+          parentCourses={parentCourses}
+          tagSuggestions={tags.map((tag) => tag.name)}
+          availableAttachments={availableAttachments}
+          values={{
+            trainingId: preferred ?? trainings[0]?.id,
+            content: "<h2>這堂課會帶走什麼</h2><p>從這裡開始撰寫課程內容。</p>",
+          }}
+        />
+      </div>
     </div>
   );
 }

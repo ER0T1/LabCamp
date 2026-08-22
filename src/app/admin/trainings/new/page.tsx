@@ -8,5 +8,9 @@ export default async function NewTrainingPage() {
   if (!session?.user) redirect("/login");
   if (session.user.role === "MEMBER") redirect("/");
 
-  return <div className="editor-page training-editor-page"><TrainingEditorForm action={createTraining}/></div>;
+  return <div className="editor-page training-editor-page">
+    <div className="editor-workspace page-shell">
+      <TrainingEditorForm action={createTraining}/>
+    </div>
+  </div>;
 }

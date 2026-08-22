@@ -67,7 +67,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
   });
   const countByLevel = new Map(levelCounts.map(item => [item.level, item._count._all]));
 
-  return <div className="page-shell inner-page admin-page">
+  return <div className="page-shell inner-page admin-page content-management-page">
     <div className="admin-subpage-head"><div><p className="eyebrow">CONTROL DESK</p><h1>管理後台</h1><p>追蹤內容、權限與系統操作事件。</p></div></div>
     <AdminTabs canManageMembers/>
 
@@ -78,8 +78,8 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
       <div><CircleX/><span>錯誤</span><b>{countByLevel.get("ERROR") ?? 0}</b><small>執行異常</small></div>
     </div>
 
-    <section className="admin-table audit-log-management">
-      <header><div><p className="eyebrow">SYSTEM AUDIT TRAIL</p><h2>系統日誌</h2></div><small>僅管理員可查看，共 {total} 筆符合條件的紀錄</small></header>
+    <section className="admin-table management-section audit-log-management" aria-labelledby="audit-log-title">
+      <header><div><p className="eyebrow">SYSTEM AUDIT TRAIL</p><h2 id="audit-log-title">系統日誌</h2><p className="management-description">追蹤內容、權限與系統操作事件。</p></div><small>僅管理員可查看，共 {total} 筆符合條件的紀錄</small></header>
       <form className="login-log-filters" action="/admin/audit-logs" method="get">
         <label>搜尋<input name="query" defaultValue={query} placeholder="操作、訊息、姓名或 Email"/></label>
         <label>等級<StyledSelect name="level" defaultValue={level ?? ""} ariaLabel="等級" options={[{ value: "", label: "全部等級" }, { value: "INFO", label: "資訊" }, { value: "WARNING", label: "警告" }, { value: "ERROR", label: "錯誤" }]}/></label>

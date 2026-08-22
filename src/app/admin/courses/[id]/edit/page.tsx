@@ -64,53 +64,55 @@ export default async function EditCoursePage({
     }));
   return (
     <div className="editor-page">
-      <CourseEditorForm
-        action={updateCourse}
-        trainings={trainings}
-        parentCourses={parentCourses}
-        tagSuggestions={tags.map((tag) => tag.name)}
-        saved={(await searchParams).saved === "1"}
-        values={{
-          ...course,
-          content: await toEditorHtml(course.content),
-          tags: course.tags.map((item) => item.tag.name).join(", "),
-        }}
-      />
-      <CourseAttachmentsPanel
-        items={course.attachments.map((attachment) => ({
-          id: attachment.id,
-          name: attachment.name,
-          type: attachment.type,
-          href: attachment.url,
-          detail: `${attachment.type} · ${attachment.createdAt.toLocaleDateString("zh-TW")}`,
-          action: <DeleteForm
-            compact
-            action={deleteAttachment.bind(null, attachment.id)}
-            label="移除"
-            confirmMessage={`確定要移除附件「${attachment.name}」嗎？若其他課程仍在使用，原始檔案會保留。`}
-          />,
-        }))}
-        actions={<>
-            <AttachmentUploader courseId={course.id} />
-            <ExistingAttachmentPicker courseId={course.id} attachments={availableAttachments}/>
-        </>}
-      />
-      {session.user.role === "ADMIN" && (
-        <section className="danger-zone">
-          <div>
-            <p className="eyebrow">DANGER ZONE</p>
-            <h2>刪除課程</h2>
-            <p>
-              刪除後將無法復原；其他課程仍在使用的共用附件檔案會保留。
-            </p>
-          </div>
-          <DeleteForm
-            action={deleteCourse.bind(null, course.id)}
-            label="刪除這門課程"
-            confirmMessage={`確定要永久刪除「${course.title}」嗎？共用附件會保留給其他課程，此操作無法復原。`}
-          />
-        </section>
-      )}
+      <div className="editor-workspace page-shell">
+        <CourseEditorForm
+          action={updateCourse}
+          trainings={trainings}
+          parentCourses={parentCourses}
+          tagSuggestions={tags.map((tag) => tag.name)}
+          saved={(await searchParams).saved === "1"}
+          values={{
+            ...course,
+            content: await toEditorHtml(course.content),
+            tags: course.tags.map((item) => item.tag.name).join(", "),
+          }}
+        />
+        <CourseAttachmentsPanel
+          items={course.attachments.map((attachment) => ({
+            id: attachment.id,
+            name: attachment.name,
+            type: attachment.type,
+            href: attachment.url,
+            detail: `${attachment.type} · ${attachment.createdAt.toLocaleDateString("zh-TW")}`,
+            action: <DeleteForm
+              compact
+              action={deleteAttachment.bind(null, attachment.id)}
+              label="移除"
+              confirmMessage={`確定要移除附件「${attachment.name}」嗎？若其他課程仍在使用，原始檔案會保留。`}
+            />,
+          }))}
+          actions={<>
+              <AttachmentUploader courseId={course.id} />
+              <ExistingAttachmentPicker courseId={course.id} attachments={availableAttachments}/>
+          </>}
+        />
+        {session.user.role === "ADMIN" && (
+          <section className="danger-zone">
+            <div>
+              <p className="eyebrow">DANGER ZONE</p>
+              <h2>刪除課程</h2>
+              <p>
+                刪除後將無法復原；其他課程仍在使用的共用附件檔案會保留。
+              </p>
+            </div>
+            <DeleteForm
+              action={deleteCourse.bind(null, course.id)}
+              label="刪除這門課程"
+              confirmMessage={`確定要永久刪除「${course.title}」嗎？共用附件會保留給其他課程，此操作無法復原。`}
+            />
+          </section>
+        )}
+      </div>
     </div>
   );
 }

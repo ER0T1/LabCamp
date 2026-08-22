@@ -94,7 +94,7 @@ export default async function LoginLogsPage({ searchParams }: { searchParams: Pr
   }
   const suspiciousIps = new Set([...failureCountByIp].filter(([, count]) => count >= 5).map(([ip]) => ip));
 
-  return <div className="page-shell inner-page admin-page">
+  return <div className="page-shell inner-page admin-page content-management-page">
     <div className="admin-subpage-head"><div><p className="eyebrow">CONTROL DESK</p><h1>管理後台</h1><p>查看登入、失敗嘗試與登出紀錄。</p></div></div>
     <AdminTabs canManageMembers/>
 
@@ -105,8 +105,8 @@ export default async function LoginLogsPage({ searchParams }: { searchParams: Pr
       <div><LogOut/><span>登出</span><b>{countByEvent.get("LOGOUT") ?? 0}</b><small>工作階段結束</small></div>
     </div>
 
-    <section className="admin-table login-log-management">
-      <header><div><p className="eyebrow">AUTHENTICATION AUDIT</p><h2>登入日誌</h2></div><small>僅管理員可查看，共 {total} 筆符合條件的紀錄</small></header>
+    <section className="admin-table management-section login-log-management" aria-labelledby="login-log-title">
+      <header><div><p className="eyebrow">AUTHENTICATION AUDIT</p><h2 id="login-log-title">登入日誌</h2><p className="management-description">檢視登入、失敗嘗試與登出活動。</p></div><small>僅管理員可查看，共 {total} 筆符合條件的紀錄</small></header>
       <form className="login-log-filters" action="/admin/login-logs" method="get">
         <label>搜尋<input name="query" defaultValue={query} placeholder="Email、姓名或 IP"/></label>
         <label>事件<StyledSelect name="event" defaultValue={event ?? ""} ariaLabel="事件" options={[{ value: "", label: "全部事件" }, { value: "LOGIN_SUCCESS", label: "登入成功" }, { value: "LOGIN_FAILED", label: "登入失敗" }, { value: "LOGOUT", label: "登出" }]}/></label>

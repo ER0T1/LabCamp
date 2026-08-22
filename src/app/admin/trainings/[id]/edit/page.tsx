@@ -13,5 +13,9 @@ export default async function EditTrainingPage({ params, searchParams }: {
   if (session.user.role === "MEMBER") redirect("/");
   const training = await prisma.training.findUnique({ where: { id: (await params).id } });
   if (!training) notFound();
-  return <div className="editor-page training-editor-page"><TrainingEditorForm action={updateTraining} values={training} saved={(await searchParams).saved === "1"}/></div>;
+  return <div className="editor-page training-editor-page">
+    <div className="editor-workspace page-shell">
+      <TrainingEditorForm action={updateTraining} values={training} saved={(await searchParams).saved === "1"}/>
+    </div>
+  </div>;
 }

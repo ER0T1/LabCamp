@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.2.1-2563eb)
+![Version](https://img.shields.io/badge/version-v1.2.2-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.2.1 功能
+## v1.2.2 功能
 
 ### 公開內容
 
@@ -43,15 +43,16 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 刪除附件、課程或訓練時會檢查檔案引用，僅在沒有其他課程使用時刪除實體檔案
 - Zod Server Actions 驗證與 HTML sanitizer
 
-### v1.2.1 重點更新
+### v1.2.2 重點更新
 
-- 課程排序由數字欄位改為同層課程拖曳清單
-- 附件可跨課程重複使用，並加入引用安全的實體檔案清理
-- 管理後台新增 `/admin/update-logs`，完整呈現 Git 提交、作者、時間、增刪行數及檔案變更
-- Production build 會自動從目前 Git `HEAD` 產生更新日誌索引
-- 新增與編輯課程／訓練依統一樣式準則重整，明確設定跨 Windows、iOS 與 Android 的文字色彩、直角邊框及互動狀態
-- 響應式斷點統一為 `1200px`、`1000px`、`750px` 與 `550px`，改善欄位對齊、附件間距及小螢幕滿寬操作
-- 修正 CKEditor 工具列邊框、標籤選單層級，以及課程預覽與排序控制的鍵盤可操作性
+- 建立完整樣式準則，統一 Design Tokens、布局、字型、元件、響應式、無障礙與程式撰寫規則
+- 一般頁面、內容編輯器與管理後台統一採用最大寬度 `1240px`，響應式斷點統一為 `1200px`、`1000px`、`750px` 與 `550px`
+- 重整網站 Header、登入與註冊介面；桌面登入區採滿版左黑右 paper 背景，內容維持 `1240px` 可讀寬度
+- 新增與編輯課程／訓練改用一致的 paper 面板、黑色直角邊框、發布 switch、附件控制與跨平台表單樣式
+- 修正 CKEditor 工具列邊框、標籤選單層級、響應式欄位對齊、附件間距與小螢幕滿寬操作
+- 課程與訓練管理依修改時間由新到舊排列，課程標籤以穩定語系規則自動排序
+- 統一課程、訓練、成員、登入日誌、系統日誌與更新日誌的 paper 區段標頭、黑色欄位表頭、狀態標籤、篩選控制及行動版摘要布局
+- 明確設定 Windows、iOS Safari 與 Android 的按鈕、連結、輸入框、下拉選單及互動狀態文字顏色
 
 ## 技術架構
 

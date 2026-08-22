@@ -83,7 +83,7 @@ export default async function ChangelogPage({
   const changedFileRecords = changelog.commits.reduce((sum, commit) => sum + commit.files.length, 0);
   const latest = changelog.commits[0];
 
-  return <div className="page-shell inner-page admin-page changelog-page">
+  return <div className="page-shell inner-page admin-page content-management-page changelog-page">
     <div className="admin-subpage-head">
       <div><p className="eyebrow">CONTROL DESK</p><h1>管理後台</h1><p>查看每一次 GitHub 提交包含的功能、修正與檔案變更。</p></div>
     </div>
@@ -96,9 +96,9 @@ export default async function ChangelogPage({
       <div><Clock3/><span>最近更新</span><b className="changelog-latest-date">{latest ? formatDate(latest.authoredAt) : "—"}</b><small>最後一次提交</small></div>
     </div>
 
-    <section className="admin-table changelog-management">
+    <section className="admin-table management-section changelog-management" aria-labelledby="changelog-title">
       <header>
-        <div><p className="eyebrow">GITHUB CHANGELOG</p><h2>更新日誌</h2></div>
+        <div><p className="eyebrow">GITHUB CHANGELOG</p><h2 id="changelog-title">更新日誌</h2><p className="management-description">檢視提交內容、作者與檔案變更。</p></div>
         <div className="changelog-header-actions">
           <small>Git 歷史截至 {formatDate(changelog.generatedAt, true)}</small>
           {changelog.repositoryUrl && <a href={changelog.repositoryUrl} target="_blank" rel="noreferrer">開啟 GitHub <ExternalLink size={14}/></a>}
