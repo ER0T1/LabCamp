@@ -15,10 +15,10 @@ export default async function AccountSettingsPage() {
     <header>
       <p className="eyebrow">ACCOUNT SETTINGS</p>
       <h1>帳號設定</h1>
-      <p>管理登入使用的電子信箱與密碼。</p>
+      <p>管理個人頭像、登入電子信箱與密碼。</p>
     </header>
     <AvatarSettingsForm avatarUrl={user?.avatarUrl ?? null} name={session.user.name ?? "使用者"}/>
-    <section className="account-settings" aria-label="帳號設定表單">
+    <section className="account-settings" aria-label="登入資料設定">
       <div><EmailSettingsForm email={session.user.email ?? ""}/><PasswordSettingsForm/></div>
     </section>
   </div>;
