@@ -27,14 +27,20 @@ export default async function NewCoursePage({
       select: { id: true, name: true, url: true, type: true, course: { select: { title: true } } },
     }),
   ]);
-  const seenUrls = new Set<string>();
-  const availableAttachments = uploadedAttachments
-    .filter((attachment) => {
-      if (seenUrls.has(attachment.url)) return false;
-      seenUrls.add(attachment.url);
-      return true;
-    })
-    .map((attachment) => ({ id: attachment.id, name: attachment.name, type: attachment.type, courseTitle: attachment.course.title }));
+  const availableAttachments = Array.from(uploadedAttachments.reduce((files, attachment) => {
+    const existing = files.get(attachment.url);
+    if (existing) {
+      if (!existing.courseTitles.includes(attachment.course.title)) existing.courseTitles.push(attachment.course.title);
+    } else {
+      files.set(attachment.url, {
+        id: attachment.id,
+        name: attachment.name,
+        type: attachment.type,
+        courseTitles: [attachment.course.title],
+      });
+    }
+    return files;
+  }, new Map<string, { id: string; name: string; type: string; courseTitles: string[] }>()).values());
   const preferred = (await searchParams).training;
   return (
     <div className="editor-page">

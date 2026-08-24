@@ -6,7 +6,9 @@ import { listTrainings } from "@/lib/repository";
 export default async function Home() {
   const trainings = await listTrainings();
   const currentTraining = trainings[0];
-  const latestCourses = trainings.flatMap(training => training.courses.map(course => ({ training, course }))).sort((a, b) => b.course.updatedAt.localeCompare(a.course.updatedAt)).slice(0, 4);
+  const latestCourses = currentTraining?.courses
+    .filter(course => course.depth === 0)
+    .map(course => ({ training: currentTraining, course })) ?? [];
   return <div className="home-page">
     <section className="hero page-shell">
       <div className="hero-index mono">RESEARCH LOG / 001</div>

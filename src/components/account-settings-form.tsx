@@ -22,12 +22,12 @@ function Feedback({ state }: { state: AccountSettingsState }) {
 
 export function EmailSettingsForm({ email }: { email: string }) {
   const [state, action] = useActionState(updateEmail, {} as AccountSettingsState);
-  return <form className="account-settings-form" action={action}>
+  return <form className="account-settings-form" action={action} autoComplete="off">
     <h2>更換電子信箱</h2>
     <p>更新後，新的電子信箱將成為下次登入使用的帳號。</p>
     <div className="current-account-email"><span>目前電子信箱</span><strong>{email}</strong></div>
-    <label>新電子信箱<input name="email" type="email" autoComplete="email" placeholder="請輸入新的電子信箱" required/></label>
-    <label>密碼<PasswordInput name="currentPassword" autoComplete="current-password" placeholder="請輸入目前密碼" required/></label>
+    <label>新電子信箱<input name="email" type="email" defaultValue="" autoComplete="off" placeholder="請輸入新的電子信箱" required/></label>
+    <label>密碼<PasswordInput name="currentPassword" defaultValue="" autoComplete="off" placeholder="請輸入目前密碼" required/></label>
     <Feedback state={state}/>
     <SettingsSubmit idle="更新電子信箱" pending="更新中…"/>
   </form>;

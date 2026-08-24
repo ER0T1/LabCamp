@@ -49,19 +49,21 @@ export default async function EditCoursePage({
   ]);
   if (!course) notFound();
   const currentUrls = new Set(course.attachments.map((attachment) => attachment.url));
-  const seenUrls = new Set<string>();
-  const availableAttachments = uploadedAttachments
-    .filter((attachment) => {
-      if (currentUrls.has(attachment.url) || seenUrls.has(attachment.url)) return false;
-      seenUrls.add(attachment.url);
-      return true;
-    })
-    .map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      type: attachment.type,
-      courseTitle: attachment.course.title,
-    }));
+  const availableAttachments = Array.from(uploadedAttachments.reduce((files, attachment) => {
+    if (currentUrls.has(attachment.url)) return files;
+    const existing = files.get(attachment.url);
+    if (existing) {
+      if (!existing.courseTitles.includes(attachment.course.title)) existing.courseTitles.push(attachment.course.title);
+    } else {
+      files.set(attachment.url, {
+        id: attachment.id,
+        name: attachment.name,
+        type: attachment.type,
+        courseTitles: [attachment.course.title],
+      });
+    }
+    return files;
+  }, new Map<string, { id: string; name: string; type: string; courseTitles: string[] }>()).values());
   return (
     <div className="editor-page">
       <div className="editor-workspace page-shell">

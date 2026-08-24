@@ -22,7 +22,7 @@ export function NewCourseAttachments({ availableAttachments }: { availableAttach
       id: `existing-${attachment.id}`,
       name: attachment.name,
       type: attachment.type,
-      detail: `${attachment.type} · 來自「${attachment.courseTitle}」`,
+      detail: `${attachment.type} · 來自 ${attachment.courseTitles.map((title) => `「${title}」`).join("、")}`,
       action: <button className="draft-attachment-remove" type="button" onClick={() => setSelected((items) => items.filter((item) => item.id !== attachment.id))}>移除</button>,
     })),
   ];

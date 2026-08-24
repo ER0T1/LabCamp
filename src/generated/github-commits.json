@@ -1,8 +1,462 @@
 {
   "repositoryUrl": "https://github.com/ER0T1/LabCamp",
-  "generatedAt": "2026-08-17T16:38:10+08:00",
-  "head": "805ee0bd033923f20edc7564ce50d353be7843cc",
+  "generatedAt": "2026-08-23T12:06:40+08:00",
+  "head": "76aabcbe736bac64c4e30b434c67806f3d7a458f",
   "commits": [
+    {
+      "hash": "76aabcbe736bac64c4e30b434c67806f3d7a458f",
+      "shortHash": "76aabcb",
+      "author": "ER0T1",
+      "authoredAt": "2026-08-23T12:06:40+08:00",
+      "subject": "release v1.2.3 responsive interface refinements",
+      "body": "",
+      "tags": [],
+      "additions": 297,
+      "deletions": 68,
+      "files": [
+        {
+          "path": "README.md",
+          "status": "M",
+          "additions": 9,
+          "deletions": 11
+        },
+        {
+          "path": "package-lock.json",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "package.json",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/account/page.tsx",
+          "status": "M",
+          "additions": 8,
+          "deletions": 4
+        },
+        {
+          "path": "src/app/account/settings/page.tsx",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "src/app/globals.css",
+          "status": "M",
+          "additions": 245,
+          "deletions": 34
+        },
+        {
+          "path": "src/app/page.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "src/app/search/page.tsx",
+          "status": "M",
+          "additions": 17,
+          "deletions": 2
+        },
+        {
+          "path": "src/app/training/[slug]/courses/[courseSlug]/page.tsx",
+          "status": "M",
+          "additions": 2,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/training/[slug]/page.tsx",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "src/app/training/page.tsx",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/components/account-settings-form.tsx",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "src/components/search-form.tsx",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "src/components/training-card.tsx",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        }
+      ]
+    },
+    {
+      "hash": "2402ef63f27842e7e4c999c1d73255240dcf7f8c",
+      "shortHash": "2402ef6",
+      "author": "ER0T1",
+      "authoredAt": "2026-08-22T12:26:10+08:00",
+      "subject": "release v1.2.2 unified interface guidelines",
+      "body": "",
+      "tags": [],
+      "additions": 416,
+      "deletions": 129,
+      "files": [
+        {
+          "path": ".gitignore",
+          "status": "M",
+          "additions": 1,
+          "deletions": 0
+        },
+        {
+          "path": "README.md",
+          "status": "M",
+          "additions": 11,
+          "deletions": 10
+        },
+        {
+          "path": "package-lock.json",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "package.json",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/admin/audit-logs/page.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "src/app/admin/courses/[id]/edit/page.tsx",
+          "status": "M",
+          "additions": 49,
+          "deletions": 47
+        },
+        {
+          "path": "src/app/admin/courses/new/page.tsx",
+          "status": "M",
+          "additions": 13,
+          "deletions": 11
+        },
+        {
+          "path": "src/app/admin/login-logs/page.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "src/app/admin/members/page.tsx",
+          "status": "M",
+          "additions": 5,
+          "deletions": 4
+        },
+        {
+          "path": "src/app/admin/page.tsx",
+          "status": "M",
+          "additions": 23,
+          "deletions": 14
+        },
+        {
+          "path": "src/app/admin/trainings/[id]/edit/page.tsx",
+          "status": "M",
+          "additions": 5,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/admin/trainings/new/page.tsx",
+          "status": "M",
+          "additions": 5,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/admin/update-logs/page.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "src/app/globals.css",
+          "status": "M",
+          "additions": 204,
+          "deletions": 12
+        },
+        {
+          "path": "src/app/login/page.tsx",
+          "status": "M",
+          "additions": 13,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/register/page.tsx",
+          "status": "M",
+          "additions": 13,
+          "deletions": 1
+        },
+        {
+          "path": "src/components/header.tsx",
+          "status": "M",
+          "additions": 49,
+          "deletions": 10
+        },
+        {
+          "path": "src/components/login-form.tsx",
+          "status": "M",
+          "additions": 10,
+          "deletions": 2
+        },
+        {
+          "path": "src/components/register-form.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        }
+      ]
+    },
+    {
+      "hash": "967650b169629c1fb253f5e085025f43681d4bab",
+      "shortHash": "967650b",
+      "author": "ER0T1",
+      "authoredAt": "2026-08-21T18:13:49+08:00",
+      "subject": "release v1.2.1 editor design consistency",
+      "body": "",
+      "tags": [],
+      "additions": 235,
+      "deletions": 84,
+      "files": [
+        {
+          "path": "README.md",
+          "status": "M",
+          "additions": 7,
+          "deletions": 3
+        },
+        {
+          "path": "package-lock.json",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "package.json",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/globals.css",
+          "status": "M",
+          "additions": 149,
+          "deletions": 22
+        },
+        {
+          "path": "src/components/attachment-uploader.tsx",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/components/course-editor-form.tsx",
+          "status": "M",
+          "additions": 37,
+          "deletions": 37
+        },
+        {
+          "path": "src/components/course-order-editor.tsx",
+          "status": "M",
+          "additions": 19,
+          "deletions": 3
+        },
+        {
+          "path": "src/components/course-preview.tsx",
+          "status": "M",
+          "additions": 8,
+          "deletions": 4
+        },
+        {
+          "path": "src/components/existing-attachment-picker.tsx",
+          "status": "M",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "src/components/new-course-attachments.tsx",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/components/training-editor-form.tsx",
+          "status": "M",
+          "additions": 7,
+          "deletions": 7
+        }
+      ]
+    },
+    {
+      "hash": "c5aa3a62117bd92df257eca3fb65411b8d5ab833",
+      "shortHash": "c5aa3a6",
+      "author": "ER0T1",
+      "authoredAt": "2026-08-18T15:15:15+08:00",
+      "subject": "release v1.2.0 course management and update logs",
+      "body": "",
+      "tags": [],
+      "additions": 1864,
+      "deletions": 91,
+      "files": [
+        {
+          "path": ".dockerignore",
+          "status": "M",
+          "additions": 0,
+          "deletions": 1
+        },
+        {
+          "path": "Dockerfile",
+          "status": "M",
+          "additions": 1,
+          "deletions": 0
+        },
+        {
+          "path": "README.md",
+          "status": "M",
+          "additions": 23,
+          "deletions": 6
+        },
+        {
+          "path": "package-lock.json",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "package.json",
+          "status": "M",
+          "additions": 2,
+          "deletions": 2
+        },
+        {
+          "path": "prisma/migrations/20260818120000_index_attachment_url/migration.sql",
+          "status": "A",
+          "additions": 2,
+          "deletions": 0
+        },
+        {
+          "path": "prisma/schema.prisma",
+          "status": "M",
+          "additions": 2,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/generate-changelog.mjs",
+          "status": "A",
+          "additions": 84,
+          "deletions": 0
+        },
+        {
+          "path": "src/actions/content.ts",
+          "status": "M",
+          "additions": 87,
+          "deletions": 10
+        },
+        {
+          "path": "src/app/admin/courses/[id]/edit/page.tsx",
+          "status": "M",
+          "additions": 43,
+          "deletions": 41
+        },
+        {
+          "path": "src/app/admin/courses/new/page.tsx",
+          "status": "M",
+          "additions": 15,
+          "deletions": 2
+        },
+        {
+          "path": "src/app/admin/page.tsx",
+          "status": "M",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/admin/update-logs/page.tsx",
+          "status": "A",
+          "additions": 154,
+          "deletions": 0
+        },
+        {
+          "path": "src/app/api/uploads/route.ts",
+          "status": "M",
+          "additions": 16,
+          "deletions": 1
+        },
+        {
+          "path": "src/app/globals.css",
+          "status": "M",
+          "additions": 15,
+          "deletions": 0
+        },
+        {
+          "path": "src/components/admin-tabs.tsx",
+          "status": "M",
+          "additions": 5,
+          "deletions": 4
+        },
+        {
+          "path": "src/components/course-attachments-panel.tsx",
+          "status": "A",
+          "additions": 46,
+          "deletions": 0
+        },
+        {
+          "path": "src/components/course-editor-form.tsx",
+          "status": "M",
+          "additions": 28,
+          "deletions": 14
+        },
+        {
+          "path": "src/components/course-order-editor.tsx",
+          "status": "A",
+          "additions": 100,
+          "deletions": 0
+        },
+        {
+          "path": "src/components/existing-attachment-picker.tsx",
+          "status": "A",
+          "additions": 89,
+          "deletions": 0
+        },
+        {
+          "path": "src/components/new-course-attachments.tsx",
+          "status": "M",
+          "additions": 40,
+          "deletions": 5
+        },
+        {
+          "path": "src/components/styled-select.tsx",
+          "status": "M",
+          "additions": 8,
+          "deletions": 2
+        },
+        {
+          "path": "src/generated/github-commits.json",
+          "status": "A",
+          "additions": 1101,
+          "deletions": 0
+        }
+      ]
+    },
     {
       "hash": "805ee0bd033923f20edc7564ce50d353be7843cc",
       "shortHash": "805ee0b",
