@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.2.4-2563eb)
+![Version](https://img.shields.io/badge/version-v1.2.5-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.2.4 功能
+## v1.2.5 功能
 
 ### 公開內容
 
@@ -43,14 +43,14 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 刪除附件、課程或訓練時會檢查檔案引用，僅在沒有其他課程使用時刪除實體檔案
 - Zod Server Actions 驗證與 HTML sanitizer
 
-### v1.2.4 重點更新
+### v1.2.5 重點更新
 
-- 首頁「最近更新」聚焦當期訓練的根課程，排除子課程並依課程順序呈現
-- 強化管理後台五個分頁的響應式布局，統一表單高度、列表操作、搜尋列與狀態標籤
-- 改善帳號設定安全性，更換電子信箱表單預設保持空白並停用自動填寫
-- 歷屆訓練與內容搜尋頁首取消個別寬度上限，改由 `1240px` 父層布局統一控制
-- 附件選擇器支援彙整同一檔案的多個來源課程，最多顯示兩個來源並以 `+N` 視窗檢視完整清單
-- 完善附件選擇視窗在 `750px` 與 `550px` 斷點的對齊、按鈕寬度及跨平台互動樣式
+- 附件在伺服器端維持 UUID 儲存名稱，下載時透過標準 `Content-Disposition` 恢復原始檔名並支援中文
+- 更新日誌改用持久化 bare Git 快取，完整讀取提交、標籤及逐檔案增刪，不受 GitHub REST API 匿名額度限制
+- 更新日誌每 24 小時自動同步，並提供 `ADMIN`／`EDITOR` 手動更新按鈕
+- 移除建置期 `github-commits.json` 與產生器，產生資料不再納入版本控制
+- 統一更新日誌操作按鈕的字級與盒模型，桌面總高 `38px`，`750px` 以下總高 `44px`
+- 修正更新日誌操作在 `750px` 與 `550px` 斷點的靠左排列及手機雙欄等寬布局
 
 ## 技術架構
 
@@ -86,6 +86,9 @@ cp .env.example .env
 | `AUTH_SECRET` | Auth.js 簽章密鑰 |
 | `AUTH_URL` / `NEXTAUTH_URL` | 網站公開網址 |
 | `LOGIN_LOG_PRIVATE_IP_FALLBACK` | 登入來源為內部網段時記錄的校園固定公網 IP |
+| `GITHUB_REPOSITORY` | 更新日誌來源，格式為 `owner/repository` |
+| `GITHUB_CHANGELOG_LIMIT` | 更新日誌載入的最新提交數量，預設 `50`、上限 `500` |
+| `GITHUB_CHANGELOG_REF` | 選用的 Git branch、tag 或 commit；留空時使用遠端預設分支 |
 | `SEED_ADMIN_PASSWORD` | 初始管理員密碼 |
 | `LETSENCRYPT_EMAIL` | Let's Encrypt 通知信箱 |
 
@@ -119,7 +122,7 @@ npm run dev
 | 指令 | 說明 |
 | --- | --- |
 | `npm run dev` | 啟動開發伺服器 |
-| `npm run build` | 產生 Git 更新日誌並建立 production build |
+| `npm run build` | 建立 production build |
 | `npm start` | 啟動 production server |
 | `npm run lint` | 執行 TypeScript 型別檢查 |
 | `npm run db:seed` | 建立初始管理員 |
@@ -176,7 +179,7 @@ Compose 會啟動 `app`、`postgres` 與 `nginx`，並保存資料庫、上傳�
 
 `deploy/labcamp.crontab` 提供每日自動續期檢查範例。
 
-Production build 會在 builder 階段讀取 `.git` 並產生 `src/generated/github-commits.json`。新的 GitHub commit 需先拉取到部署主機，再重新建置 `app` 容器才會出現在更新日誌；最終執行中的 App image 不包含 `.git`。
+更新日誌由伺服器將公開 GitHub 儲存庫同步至持久化的 bare Git 快取，再從本機 Git 讀取提交、標籤與逐檔案統計；產生資料不會納入版本控制，也不受匿名 REST API 額度限制。資料快取 24 小時後會自動執行 `git fetch`；`ADMIN` 與 `EDITOR` 也可在更新日誌頁按下「更新日誌」，立即清除快取並同步最新提交。Docker Compose 使用 `changelog_git` volume 保存 Git 快取，重建容器後不需重新 clone。
 
 ## 專案結構
 
@@ -185,12 +188,10 @@ LabCamp/
 ├── deploy/             # Nginx、Certbot 與 cron 設定
 ├── prisma/             # Prisma schema 與 seed
 ├── public/             # 靜態資源與離線頁面
-├── scripts/            # 建置期更新日誌產生器
 ├── src/
 │   ├── actions/        # Server Actions
 │   ├── app/            # App Router 頁面與 API routes
 │   ├── components/     # UI 與表單元件
-│   ├── generated/      # 建置期產生的 Git 提交索引
 │   └── lib/            # Repository、上傳與共用工具
 ├── storage/uploads/    # 本機上傳檔案（不納入版本控制）
 ├── Dockerfile

@@ -9,3 +9,4 @@ storage/uploads/*
 !storage/uploads/.gitkeep
 writing-block.md
 STYLE_GUIDE.md
+src/generated/github-commits.json

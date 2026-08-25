@@ -1,38 +1,10 @@
 import Link from "next/link";
-import { Clock3, ExternalLink, Files, GitCommitHorizontal, Users } from "lucide-react";
+import { Clock3, ExternalLink, Files, GitCommitHorizontal, RefreshCw, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { refreshGitHubChangelog } from "@/actions/changelog";
 import { AdminTabs } from "@/components/admin-tabs";
-import changelogJson from "@/generated/github-commits.json";
-
-type ChangedFile = {
-  path: string;
-  status: string;
-  additions: number | null;
-  deletions: number | null;
-};
-
-type Commit = {
-  hash: string;
-  shortHash: string;
-  author: string;
-  authoredAt: string;
-  subject: string;
-  body: string;
-  tags: string[];
-  additions: number;
-  deletions: number;
-  files: ChangedFile[];
-};
-
-type Changelog = {
-  repositoryUrl: string;
-  generatedAt: string;
-  head: string;
-  commits: Commit[];
-};
-
-const changelog = changelogJson as unknown as Changelog;
+import { getGitHubChangelog, type Changelog } from "@/lib/github-changelog";
 const PAGE_SIZE = 15;
 const statusLabels: Record<string, string> = {
   A: "新增", M: "修改", D: "刪除", R: "重新命名", C: "複製", T: "類型變更",
@@ -58,13 +30,23 @@ function formatDate(value: string, includeTime = false) {
 export default async function ChangelogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string; page?: string }>;
+  searchParams: Promise<{ query?: string; page?: string; updated?: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (session.user.role === "MEMBER") redirect("/");
 
   const params = await searchParams;
+  let loadError = "";
+  const changelog = await getGitHubChangelog().catch((error) => {
+    loadError = error instanceof Error ? error.message : "無法載入 GitHub 更新日誌";
+    return {
+      repositoryUrl: "https://github.com/ER0T1/LabCamp",
+      generatedAt: new Date().toISOString(),
+      head: "",
+      commits: [],
+    } satisfies Changelog;
+  });
   const query = params.query?.trim().toLocaleLowerCase() ?? "";
   const filtered = query
     ? changelog.commits.filter((commit) => [
@@ -100,7 +82,8 @@ export default async function ChangelogPage({
       <header>
         <div><p className="eyebrow">GITHUB CHANGELOG</p><h2 id="changelog-title">更新日誌</h2><p className="management-description">檢視提交內容、作者與檔案變更。</p></div>
         <div className="changelog-header-actions">
-          <small>Git 歷史截至 {formatDate(changelog.generatedAt, true)}</small>
+          <small>{params.updated === "1" && !loadError ? "已載入最新資料 · " : ""}GitHub 資料截至 {formatDate(changelog.generatedAt, true)}</small>
+          <form action={refreshGitHubChangelog}><button type="submit">更新日誌 <RefreshCw size={14}/></button></form>
           {changelog.repositoryUrl && <a href={changelog.repositoryUrl} target="_blank" rel="noreferrer">開啟 GitHub <ExternalLink size={14}/></a>}
         </div>
       </header>
@@ -111,6 +94,7 @@ export default async function ChangelogPage({
       </form>
 
       <div className="changelog-list">
+        {loadError && <div className="admin-empty" role="alert">GitHub 更新日誌載入失敗，請檢查公開儲存庫、網路連線與 Git 快取設定。</div>}
         {commits.map((commit) => <article className="changelog-entry" key={commit.hash}>
           <header>
             <div className="commit-identity">
@@ -141,7 +125,7 @@ export default async function ChangelogPage({
             </div>}
           </details>
         </article>)}
-        {commits.length === 0 && <div className="admin-empty">沒有符合條件的提交紀錄</div>}
+        {!loadError && commits.length === 0 && <div className="admin-empty">沒有符合條件的提交紀錄</div>}
       </div>
 
       {totalPages > 1 && <nav className="admin-pagination" aria-label="更新日誌分頁">

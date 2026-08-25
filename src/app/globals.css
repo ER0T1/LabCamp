@@ -412,7 +412,6 @@ label.publish-check.publication-switch input[type="checkbox"]:focus-visible{outl
 .training-editor-form .training-fields-panel label>small{color:var(--muted)}
 .training-editor-form input:not([type="hidden"]):not([type="checkbox"]),.training-editor-form textarea{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:100%;min-width:0;border:1px solid var(--ink);border-radius:0;background-color:var(--white);color:var(--ink);-webkit-text-fill-color:currentColor;font:inherit}
 .training-editor-form input:not([type="hidden"]):not([type="checkbox"]){height:44px;padding:0 12px}
-.training-editor-form input[type="number"]{-moz-appearance:textfield}
 .training-editor-form input[type="number"]::-webkit-inner-spin-button,.training-editor-form input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .training-editor-form textarea{min-height:150px;padding:12px;line-height:1.7;resize:vertical}
 .training-editor-form input::placeholder,.training-editor-form textarea::placeholder{color:var(--muted);opacity:1}
@@ -612,6 +611,9 @@ label.publish-check.publication-switch input[type="checkbox"]:focus-visible{outl
 .admin-pagination a:hover,.admin-pagination a:focus-visible{background-color:var(--acid);color:var(--ink);outline:2px solid var(--ink);outline-offset:3px}
 .changelog-management>header{align-items:flex-end}
 .changelog-header-actions small{color:var(--muted)}
+.changelog-header-actions form{margin:0}
+.changelog-header-actions form button{box-sizing:border-box;height:38px;min-height:0;margin:0;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ink);border-radius:0;background-color:var(--ink);color:var(--white);font:700 10px var(--font-sans);-webkit-text-fill-color:currentColor;cursor:pointer}
+.changelog-header-actions form button:hover,.changelog-header-actions form button:focus-visible{background-color:var(--acid);color:var(--ink);outline:2px solid var(--ink);outline-offset:3px}
 .changelog-header-actions a,.changelog-header-actions a:visited{border-radius:0;background-color:var(--paper);color:var(--ink);-webkit-text-fill-color:currentColor}
 .changelog-header-actions a:hover,.changelog-header-actions a:focus-visible{background-color:var(--acid);color:var(--ink);outline:2px solid var(--ink);outline-offset:3px}
 .changelog-search{padding:18px 24px;border-bottom:1px solid var(--ink);background-color:var(--paper)}
@@ -644,6 +646,10 @@ label.publish-check.publication-switch input[type="checkbox"]:focus-visible{outl
 @media(max-width:550px){.changelog-search{display:flex;grid-template-columns:none}.changelog-search input{width:auto;min-width:0;flex:1}.changelog-search button{width:auto;flex:none;margin:0}}
 @media(max-width:750px){.management-section .admin-search{height:44px;min-height:44px}.management-section .admin-search input,.management-section .admin-search button{box-sizing:border-box;height:100%;min-height:0}.member-role-form .styled-select,.login-log-filters .styled-select{--select-height:44px}.member-role-form .styled-select>button,.member-role-form>button{height:44px;min-height:44px}.login-log-filters input,.login-log-filters select,.login-log-filters .date-filter-control,.login-log-filters .styled-select>button,.login-log-filters>div>button,.login-log-filters>div>a{box-sizing:border-box;height:44px;min-height:44px}.changelog-search input,.changelog-search button,.changelog-search a{box-sizing:border-box;height:44px;min-height:44px}}
 @media(max-width:550px){.member-admin-row>.delete-form{width:100%;justify-self:stretch}.member-management .delete-form.compact button{width:100%}}
+@media(max-width:550px){.changelog-header-actions{align-items:stretch;flex-direction:column}.changelog-header-actions form,.changelog-header-actions form button,.changelog-header-actions a{box-sizing:border-box;width:100%;min-height:44px}}
+.changelog-management .changelog-header-actions form button,.changelog-management .changelog-header-actions>a{box-sizing:border-box;height:38px;min-height:0;margin:0;padding-block:0;font:700 10px/1.2 var(--font-sans)}
+@media(max-width:750px){.changelog-header-actions{width:100%;align-items:center;justify-content:flex-start;flex-direction:row;flex-wrap:nowrap}.changelog-header-actions form,.changelog-header-actions form button,.changelog-header-actions>a{width:auto}.changelog-header-actions form button,.changelog-header-actions>a{height:44px;min-height:0}}
+@media(max-width:550px){.changelog-header-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:center}.changelog-header-actions form,.changelog-header-actions>a{box-sizing:border-box;width:100%;min-width:0;flex:none}.changelog-header-actions form button{width:100%}}
 
 /* Account profile and settings aligned with STYLE_GUIDE.md. */
 .account-page,.account-settings-page{max-width:none;min-width:0}

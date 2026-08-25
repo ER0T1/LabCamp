@@ -1,10 +1,10 @@
 {
   "name": "labcamp",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/generate-changelog.mjs && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
     "db:seed": "node prisma/seed.mjs"

@@ -24,9 +24,14 @@ services:
       NEXTAUTH_URL: https://labcamp.duckdns.org
       UPLOAD_DIR: /app/storage/uploads
       LOGIN_LOG_PRIVATE_IP_FALLBACK: ${LOGIN_LOG_PRIVATE_IP_FALLBACK:?Set LOGIN_LOG_PRIVATE_IP_FALLBACK in .env}
+      GITHUB_REPOSITORY: ${GITHUB_REPOSITORY:-ER0T1/LabCamp}
+      GITHUB_CHANGELOG_LIMIT: ${GITHUB_CHANGELOG_LIMIT:-50}
+      GITHUB_CHANGELOG_REF: ${GITHUB_CHANGELOG_REF:-}
+      GITHUB_CACHE_DIR: /app/storage/git/labcamp.git
       NODE_ENV: production
     volumes:
       - uploads:/app/storage/uploads
+      - changelog_git:/app/storage/git
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,5 +72,6 @@ services:
 volumes:
   labcamp_data:
   uploads:
+  changelog_git:
   letsencrypt:
   certbot_www:
