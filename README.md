@@ -2,14 +2,14 @@
 
 > 計算工程與資訊科技研究室的寒暑訓、課程管理與知識傳承平台。
 
-![Version](https://img.shields.io/badge/version-v1.2.5-2563eb)
+![Version](https://img.shields.io/badge/version-v1.2.6-2563eb)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
 LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提供公開瀏覽、全文搜尋、成員帳號，以及依角色控管的內容後台。正式環境支援 Docker Compose、Nginx 反向代理與 Let's Encrypt HTTPS。
 
-## v1.2.5 功能
+## v1.2.6 功能
 
 ### 公開內容
 
@@ -43,7 +43,7 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 刪除附件、課程或訓練時會檢查檔案引用，僅在沒有其他課程使用時刪除實體檔案
 - Zod Server Actions 驗證與 HTML sanitizer
 
-### v1.2.5 重點更新
+### v1.2.6 重點更新
 
 - 附件在伺服器端維持 UUID 儲存名稱，下載時透過標準 `Content-Disposition` 恢復原始檔名並支援中文
 - 更新日誌改用持久化 bare Git 快取，完整讀取提交、標籤及逐檔案增刪，不受 GitHub REST API 匿名額度限制
@@ -51,6 +51,8 @@ LabCamp 將歷屆寒暑訓、階層式課程、教材與附件集中管理，提
 - 移除建置期 `github-commits.json` 與產生器，產生資料不再納入版本控制
 - 統一更新日誌操作按鈕的字級與盒模型，桌面總高 `38px`，`750px` 以下總高 `44px`
 - 修正更新日誌操作在 `750px` 與 `550px` 斷點的靠左排列及手機雙欄等寬布局
+- 修正新增或編輯課程時，同層其他課程的更新日期會被排序同步連動改寫的問題
+- 修正更新日誌操作按鈕在 `750px` 以下被桌面樣式覆蓋，確保實際高度維持 `44px`
 
 ## 技術架構
 

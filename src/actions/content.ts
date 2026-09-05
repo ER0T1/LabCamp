@@ -115,7 +115,7 @@ async function syncSiblingOrder({
   const siblings = await prisma.course.findMany({
     where: { trainingId, parentId },
     orderBy: [{ order: "asc" }, { title: "asc" }],
-    select: { id: true },
+    select: { id: true, order: true, updatedAt: true },
   });
   const validIds = new Set(siblings.map((course) => course.id));
   let requestedIds: string[] = [];
@@ -141,16 +141,52 @@ async function syncSiblingOrder({
     orderedIds.splice(Math.min(Math.max(preferredOrder, 0), orderedIds.length), 0, courseId);
     seen.add(courseId);
   }
-  await prisma.$transaction(orderedIds.map((id, order) => prisma.course.update({ where: { id }, data: { order } })));
+  const siblingsById = new Map(siblings.map((course) => [course.id, course]));
+  const updates = orderedIds.flatMap((id, order) => {
+    const sibling = siblingsById.get(id);
+    if (!sibling || sibling.order === order) return [];
+
+    return [
+      prisma.course.update({
+        where: { id },
+        data: {
+          order,
+          // Reordering is layout metadata, not a content edit. Preserve the
+          // course's existing update timestamp instead of refreshing it.
+          updatedAt: sibling.updatedAt,
+        },
+      }),
+    ];
+  });
+
+  if (updates.length > 0) {
+    await prisma.$transaction(updates);
+  }
 }
 
 async function normalizeSiblingOrders(trainingId: string, parentId: string | null) {
   const siblings = await prisma.course.findMany({
     where: { trainingId, parentId },
     orderBy: [{ order: "asc" }, { title: "asc" }],
-    select: { id: true },
+    select: { id: true, order: true, updatedAt: true },
   });
-  await prisma.$transaction(siblings.map((course, order) => prisma.course.update({ where: { id: course.id }, data: { order } })));
+  const updates = siblings.flatMap((course, order) => {
+    if (course.order === order) return [];
+
+    return [
+      prisma.course.update({
+        where: { id: course.id },
+        data: {
+          order,
+          updatedAt: course.updatedAt,
+        },
+      }),
+    ];
+  });
+
+  if (updates.length > 0) {
+    await prisma.$transaction(updates);
+  }
 }
 
 export async function createTraining(formData: FormData) {
